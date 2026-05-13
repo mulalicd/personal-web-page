@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Service role manages email metrics" ON public.email_send_metrics;
