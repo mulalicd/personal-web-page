@@ -227,7 +227,7 @@ export const PortfolioSection = () => {
             <div className="flex items-center gap-3 mb-6">
               <Lightbulb className="w-5 h-5 text-accent" />
               <h3 className="text-lg font-semibold text-foreground">AI Prompts</h3>
-              <span className="px-2.5 py-0.5 bg-accent/10 text-accent rounded-full text-xs font-medium">
+              <span className="px-2.5 py-0.5 bg-accent/10 text-[hsl(var(--accent-strong))] rounded-full text-xs font-medium">
                 {filteredPrompts.length}
               </span>
             </div>

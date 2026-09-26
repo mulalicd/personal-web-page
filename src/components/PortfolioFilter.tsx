@@ -45,6 +45,8 @@ export function PortfolioFilter({
         />
         {searchQuery && (
           <button
+            type="button"
+            aria-label="Clear search"
             onClick={() => onSearchChange("")}
             className="absolute right-12 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
           >
@@ -53,6 +55,9 @@ export function PortfolioFilter({
         )}
         <button
           onClick={() => setShowFilters(!showFilters)}
+          type="button"
+          aria-label={showFilters ? "Hide industry filters" : "Show industry filters"}
+          aria-expanded={showFilters}
           className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors ${
             showFilters ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
           }`}
@@ -82,7 +87,7 @@ export function PortfolioFilter({
             )}
             <span className="relative z-10">{type.label}</span>
             {type.count !== null && (
-              <span className="relative z-10 ml-1.5 text-xs opacity-60">
+              <span className="relative z-10 ml-1.5 text-xs text-muted-foreground">
                 {type.count}
               </span>
             )}

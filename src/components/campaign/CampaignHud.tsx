@@ -13,7 +13,7 @@ export function CampaignHud() {
   const percent = Math.round(progress * 100);
 
   return (
-    <>
+    <aside aria-label="Career campaign progress">
       {/* Progress bar directly under the fixed navigation (h-16 / lg:h-20). */}
       <div
         className="fixed left-0 right-0 top-16 lg:top-20 z-40 h-[3px] bg-border/40"
@@ -69,6 +69,6 @@ export function CampaignHud() {
           )}
         </AnimatePresence>
       </div>
-    </>
+    </aside>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import type { Json } from "@/integrations/supabase/types";
 import { motion } from "framer-motion";
 import { ScrollText, RefreshCw, Filter, Search, ChevronDown, ChevronRight, AlertTriangle, CheckCircle } from "lucide-react";
@@ -80,7 +80,7 @@ export function AuditLogViewer() {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  const fetchEntries = async () => {
+  const fetchEntries = useCallback(async () => {
     if (!supabase) return;
     setLoading(true);
     try {
@@ -108,12 +108,11 @@ export function AuditLogViewer() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange]);
 
   useEffect(() => {
-    fetchEntries();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeRange]);
+    void fetchEntries();
+  }, [fetchEntries]);
 
   const actionTypes = useMemo(() => {
     const set = new Set<string>();

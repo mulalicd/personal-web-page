@@ -40,7 +40,7 @@ export function CVRequestDialog({ children }: CVRequestDialogProps) {
     }
 
     setSubmitting(true);
-    const result = await callFunction<{ alreadyRequested: boolean }>("request-cv", parsed.data);
+    const result = await callFunction<{ received: true }>("request-cv", parsed.data);
     setSubmitting(false);
 
     if (result.success) {

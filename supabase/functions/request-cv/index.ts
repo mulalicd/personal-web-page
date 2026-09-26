@@ -2,7 +2,8 @@
  * POST /functions/v1/request-cv
  * Role required: none (public visitor)
  * Body: cvRequestSchema — { email, name?, idempotencyKey? }
- * Response: { success: true, data: { alreadyRequested: boolean } }
+ * Response: { success: true, data: { received: true } } — identical whether or not the
+ *   address already had a request, so the endpoint cannot be used to probe emails.
  * Errors: 400 (validation), 429 (rate limit), 500 (unexpected)
  *
  * Stores a pending request and notifies the Director. The visitor never learns
@@ -41,7 +42,7 @@ Deno.serve(async (req) => {
       .limit(1)
       .maybeSingle();
     if (existingError) throw new Error(`cv_requests lookup failed: ${existingError.message}`);
-    if (existing) return ok(req, { alreadyRequested: true });
+    if (existing) return ok(req, { received: true });
 
     const { data: created, error: insertError } = await db
       .from("cv_requests")
@@ -69,7 +70,7 @@ Deno.serve(async (req) => {
     // The request is saved either way; a failed notification is visible in Email Metrics.
     if (!notify.ok) logError("request-cv.notify", notify.code, { requestId: created.id });
 
-    return ok(req, { alreadyRequested: false });
+    return ok(req, { received: true });
   } catch (error) {
     logError("request-cv", error);
     return fail(req, 500, "Something went wrong. Please try again in a few minutes.", "INTERNAL_ERROR");

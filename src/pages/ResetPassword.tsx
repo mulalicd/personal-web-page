@@ -53,7 +53,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <main className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <Link to="/auth" className="inline-block mb-6">
@@ -116,6 +116,6 @@ export default function ResetPassword() {
           </Card>
         </motion.div>
       </div>
-    </div>
+    </main>
   );
 }

@@ -26,7 +26,9 @@ Deno.serve(async (req) => {
 
   try {
     const parsed = chatRequestSchema.safeParse(await req.json().catch(() => null));
-    if (!parsed.success) return fail(req, 400, "Please type a message.", "VALIDATION_ERROR");
+    if (!parsed.success) {
+      return fail(req, 400, "Please type a message of up to 2,000 characters.", "VALIDATION_ERROR");
+    }
     const turns = parsed.data.messages;
     if (turns[turns.length - 1].role !== "user") {
       return fail(req, 400, "Please type a message.", "VALIDATION_ERROR");
