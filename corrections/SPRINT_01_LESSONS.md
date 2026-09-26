@@ -95,9 +95,11 @@ Date: 2026-09-26
   code so a dead model is distinguishable from a bad key without log access.
 - Gotcha: two DKIM TXT records (old + new) on `resend._domainkey` — adding the
   new one without deleting the old one keeps Resend verification failing.
-- Gotcha: `nslookup -type=TXT send.<domain>` returned an SPF string even after
-  the CNAME was added — it is the TXT of the CNAME *target* (Resend's host),
-  not a leftover record. Check CNAME first before concluding a TXT conflict.
+- Course correction: I first read the SPF TXT on `send.<domain>` as the TXT of
+  the CNAME target. Wrong — a CNAME answer would appear first in the output;
+  Namecheap was actually serving a leftover TXT next to the new CNAME, and
+  Resend flagged "Conflicting records". → When a CNAME and TXT both answer for
+  a host, assume a real conflicting record until the output proves otherwise.
 
 ## Commander Improvement Candidates (continued)
 - DL-005: replace the hard-pinned `gemini-2.5-flash` with a reviewed current

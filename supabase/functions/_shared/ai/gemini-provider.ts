@@ -4,8 +4,12 @@
  */
 import { AIProviderError, type AIProvider, type ChatTurn, type GenerateOptions } from "./ai-provider.interface.ts";
 
-/** Exact model string mandated by Commander DL-005. */
-export const GEMINI_GENERATION_MODEL = "gemini-2.5-flash";
+/**
+ * Model alias chosen by the Director on 2026-09-26 (PDL-005): Google keeps it
+ * pointed at the newest Flash model. Deviates from Commander DL-005, whose
+ * pinned "gemini-2.5-flash" now returns NOT_FOUND.
+ */
+export const GEMINI_GENERATION_MODEL = "gemini-flash-latest";
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 interface GeminiChunk {

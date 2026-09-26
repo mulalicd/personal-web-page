@@ -54,4 +54,17 @@ scene built on three.js (new dependency — approved per M-12).
 
 ---
 
+## PDL-005 — Chatbot model: `gemini-flash-latest` (deviation from DL-005)
+
+**Date:** 2026-09-26
+**Decision:** Director chose the Google-maintained alias `gemini-flash-latest`
+instead of a pinned model string.
+**Rationale:** DL-005's pinned `gemini-2.5-flash` returned NOT_FOUND
+(Google restricted the 2.5 models; current stable line is 3.x). The alias
+removes manual model migrations; trade-off accepted: answer style can change
+when Google moves the alias. Knowledge stays fixed by the system prompt.
+**Commander follow-up:** proposed DL-005 update recorded in corrections/.
+
+---
+
 *Commander v1.5.4 — IDSS123a Organisation*
