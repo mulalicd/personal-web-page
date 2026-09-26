@@ -56,3 +56,8 @@
 - [2026-09-26 12:21] Write: src\components\campaign\TrophyRoom.tsx
 - [2026-09-26 12:21] Write: src\components\campaign\BadgeCase.tsx
 - [2026-09-26 12:23] Edit: src\components\ExperienceSection.tsx
+- [2026-09-26 15:02] Write: COMMANDER_UPDATE_PROPOSAL.md
+- [2026-09-26 15:06] Write: ..\..\..\cmdr\apply.py
+- [2026-09-26 15:07] Write: ..\..\..\cmdr\apply2.py
+- [2026-09-26 15:07] Write: ..\..\..\cmdr\apply3.py
+- [2026-09-26 15:08] Write: ..\..\..\cmdr\apply4.py

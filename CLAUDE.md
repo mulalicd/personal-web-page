@@ -5,7 +5,7 @@
 
 ## GOVERNANCE — TIERED LOADING (M-21)
 
-This project is governed by **Commander v1.5.4**
+This project is governed by **Commander v1.6**
 (github.com/IDSS123a/commander). The 🔴 CRITICAL rules are inlined
 below and always apply — do NOT bulk-load full Commander documents at
 session start. Read a full document only when the task enters its
@@ -67,7 +67,7 @@ DONE_CHECKLIST.md.
 
 ## AUTOMATION LAYER (hooks — deterministic, zero-token)
 
-Installed in `.claude/` (pinned to Commander tag v1.5.2 — see lessons):
+Installed in `.claude/` (pinned to Commander tag v1.6):
 - `version-check.js` (SessionStart) — warns on Commander version drift
 - `log-change.js` + `project-guard.js` (PostToolUse) — auto-logs every
   edit; project-guard BLOCKS forbidden patterns per E-13
@@ -100,4 +100,4 @@ Installed in `.claude/` (pinned to Commander tag v1.5.2 — see lessons):
 
 ---
 
-*Commander v1.5.4 — IDSS123a Organisation — Davor Mulalić*
+*Commander v1.6 — IDSS123a Organisation — Davor Mulalić*

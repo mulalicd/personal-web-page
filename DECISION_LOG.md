@@ -67,4 +67,4 @@ when Google moves the alias. Knowledge stays fixed by the system prompt.
 
 ---
 
-*Commander v1.5.4 — IDSS123a Organisation*
+*Commander v1.6 — IDSS123a Organisation*

@@ -41,3 +41,11 @@
 ## Commander Improvement Candidates
 - For SPA → prerender work: add a checklist item "every browser-only read
   moves to an effect; verify with a stored-state reload and a hidden tab".
+
+### 2026-09-26 — KRAJ / Commander v1.6
+- Commander documents carried four different version stamps (1.5.2, 1.5.3,
+  1.5.4) because earlier updates bumped only the files they touched. v1.6
+  unified all headers/footers with one regex pass; historical references
+  ("Added: v1.5.3", changelogs) were deliberately left unchanged.
+- Project re-pinned from automation tag v1.5.2 to v1.6 (only project-guard.js
+  differed: it now reports tracked archives).

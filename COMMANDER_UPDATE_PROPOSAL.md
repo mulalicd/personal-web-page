@@ -5,6 +5,10 @@ Sprints completed: 04 (01–03 shipped; 04 shipped and rolled back)
 Commander version in use: v1.5.4 (automation pinned to tag v1.5.2)
 Proposed new version: **v1.6** (one new rule + several learned-from additions)
 
+**Status: APPROVED ("odobri", 2026-09-26) and EXECUTED** — Commander commit
+`23cedfd`, tags `v1.5.3`, `v1.5.4`, `v1.6`, AUDIT-004. This project now pins
+automation to tag v1.6.
+
 Evidence base: `corrections/SPRINT_01..04_LESSONS.md`, `DECISION_LOG.md`
 (PDL-001..005), compliance scores in `sprints/SPRINT_01..03.md`, Commander
 `CONSTITUTION.md`, `DECISION_LOG.md`, `AUDIT_LOG.md`, `ENGINEERING_RULES.md`,

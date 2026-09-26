@@ -104,4 +104,4 @@ anything not approved — ask first (Director instruction, 2026-09-26).
 
 ---
 
-*Commander v1.5.4 — IDSS123a Organisation — Davor Mulalić*
+*Commander v1.6 — IDSS123a Organisation — Davor Mulalić*
