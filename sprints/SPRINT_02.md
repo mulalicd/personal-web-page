@@ -1,5 +1,5 @@
 # SPRINT 02 — "Executive Presence" hero (AAA-quality animation)
-Status: **IMPLEMENTED — awaiting Director visual review on a preview URL** (approved 2026-09-26)
+Status: **DONE — Director approved the visual review and publication on 2026-09-26**
 Created: 2026-09-26 · Commander v1.5.4 · FULL mode · Decision: PDL-004
 
 Goal: replace the 2D canvas globe behind the portrait with a cinematic,
@@ -70,7 +70,8 @@ remaining acceptance step.
 ## HANDOFF NOTE — Sprint 02
 Completed: Executive Presence hero scene, era data in profile.ts (`careerEras`,
 `experience[].era`), accessible text equivalent, old globe removed.
-Not completed: real-device fps measurement; Director's visual sign-off.
+Not completed: formal fps measurement (Director reviewed it live on his own hardware and approved).
+Director feedback applied: nodes made larger and more striking (core, flare, signal pulse).
 Open risks: very old GPUs fall back to the plain portrait only if WebGL is
 missing entirely — slow-but-present WebGL runs the full scene.
 Technical debt: none new.
