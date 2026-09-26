@@ -28,3 +28,16 @@ Date: 2026-09-26
   effects wrap real HTML content (keeps SEO/LCP of the <img>).
 - DONE_CHECKLIST (visual features): "verified with a real-time CDP capture or
   on real hardware — not with a throttled preview pane".
+
+### 2026-09-26 — Review & publication
+- Correction (Director): orbit nodes were too small / not striking enough.
+  Fixed with a 7 px white-hot core, 70 px breathing halo, rotating 4-point
+  flare and a staggered expanding "signal" pulse. → For hero-level visuals,
+  make the data-bearing elements the most prominent thing in the scene.
+- Gotcha: Vercel preview URLs of this project are protected by Vercel login,
+  which the Director could not pass. Working alternative: `vite preview --host`
+  on his own PC (localhost + LAN IP for the phone). Real GPU, no login.
+- Gotcha: Git Credential Manager silently started requiring interactive login
+  (push hung until timeout). Non-interactive fallback that works:
+  `git -c credential.helper= -c "credential.helper=!gh auth git-credential" push`.
+  Always push with `GIT_TERMINAL_PROMPT=0` and a timeout so a prompt cannot hang.
