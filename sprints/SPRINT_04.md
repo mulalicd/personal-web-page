@@ -3,6 +3,7 @@ Status: **ROLLED BACK 2026-09-26** — published on Director "objavi", measured,
 then reverted as promised because the mobile Lighthouse score got worse
 (58 → 33–45; observed first paint improved 2.7 s → 1.5 s). See
 corrections/SPRINT_04_LESSONS.md. Director approved the sprint 2026-09-26.
+**CLOSED 2026-09-26 — Director decision: stay on the version without Sprint 04.**
 Created: 2026-09-26 · Commander v1.5.4 · FULL mode
 
 Goal: the homepage appears on a phone as soon as its HTML arrives, instead of
