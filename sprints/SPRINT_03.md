@@ -1,5 +1,5 @@
 # SPRINT 03 — Site-wide AAA gamification ("Career Campaign")
-Status: **IMPLEMENTED — awaiting Director review on a local build** (approved 2026-09-26: rarity ok, chapters ok, tone expressive, + Vibe-Coding Journal badge)
+Status: **DONE — Director approved publication 2026-09-26** (approved 2026-09-26: rarity ok, chapters ok, tone expressive, + Vibe-Coding Journal badge)
 Created: 2026-09-26 · Commander v1.5.4 · FULL mode
 
 Goal: turn a visit into a short, premium "campaign" through Davor's career —
@@ -76,7 +76,7 @@ phone 390 px (no horizontal overflow), banner, completion (9/9).
 
 ## HANDOFF NOTE — Sprint 03
 Completed: items 1–6 above.
-Not completed: Director's visual sign-off (local build).
+Director feedback applied before publication: prominent era banners; chatbot reliability (model fallback + multi-key); Lovable audit.
 Open risks: progress is per browser (localStorage) by design.
 Technical debt: none new (3 lint warnings — hook + provider in one file).
 Next: Director review → publish; then KRAJ or further sprints as he decides.
