@@ -34,3 +34,12 @@ Date: 2026-09-26
 - Gotcha: the Director opened an old immutable Vercel deployment URL
   (`…-7ps7c5f6v-…` = first Sprint 01 deploy) and saw "the old site". Always
   point to the production domain; per-deployment URLs are frozen snapshots.
+- Correction: chat burst test (10 requests) hit Google free-tier 429s. Added
+  model fallback (`gemini-flash-latest` → `gemini-3.5-flash-lite`) and
+  GEMINI_API_KEY_1…n rotation (DL-005 pattern); 12/12 OK afterwards. Our own
+  rate limiter was NOT the cause (16/30) — check which limiter fired before
+  "fixing" the wrong one.
+- Lovable audit: no functional link left (code, deps, live bundles, Supabase,
+  Lovable workspace). Remaining mentions are governance history + a guard
+  pattern that blocks re-introduction. A possible remaining link is the Lovable
+  GitHub App installation on the repo — only the repo owner can see/remove it.
