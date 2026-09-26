@@ -1,23 +1,18 @@
 /**
  * Gemini implementation of AIProvider (DL-005), via the REST streaming API.
- * Secret: GEMINI_API_KEY_1.
+ * Secrets: GEMINI_API_KEY_1 … GEMINI_API_KEY_n (DL-005 multi-key pattern).
  */
 import { AIProviderError, type AIProvider, type ChatTurn, type GenerateOptions } from "./ai-provider.interface.ts";
 
 /**
- * Model alias chosen by the Director on 2026-09-26 (PDL-005): Google keeps it
- * pointed at the newest Flash model. Deviates from Commander DL-005, whose
- * pinned "gemini-2.5-flash" now returns NOT_FOUND.
+ * Models tried in order (PDL-005). Primary: the alias the Director chose.
+ * Fallback: a stable Flash-Lite model with its own free-tier quota — used when
+ * the primary is overloaded (503) or out of requests-per-minute (429).
  */
-export const GEMINI_GENERATION_MODEL = "gemini-flash-latest";
+export const GEMINI_MODELS: readonly string[] = ["gemini-flash-latest", "gemini-3.5-flash-lite"];
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
-/**
- * Google answers 503 UNAVAILABLE / 500 while a model is overloaded — usually for
- * a second or two (seen live 2026-09-26: 1 of 3 requests). Retry before
- * streaming starts; nothing has reached the visitor yet, so it is invisible.
- */
-const GEMINI_MAX_ATTEMPTS = 3;
-const GEMINI_RETRY_BASE_MS = 700;
+/** Pause before retrying the same model+key after a 5xx overload (seen live 2026-09-26). */
+const GEMINI_OVERLOAD_RETRY_MS = 700;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -28,10 +23,52 @@ interface GeminiChunk {
 }
 
 export class GeminiProvider implements AIProvider {
-  constructor(private readonly apiKey: string) {}
+  /** @param apiKeys - One or more keys; each has its own free-tier quota. */
+  constructor(private readonly apiKeys: readonly string[]) {}
+
+  /**
+   * Try every model × key combination until one accepts the request.
+   * 429 (quota) and 404 (model unavailable) move on immediately; 5xx gets one
+   * short retry first. Nothing is streamed until a request succeeds, so the
+   * visitor never sees the failed attempts.
+   */
+  private async open(body: string): Promise<Response> {
+    let last: Response | null = null;
+    for (const model of GEMINI_MODELS) {
+      const url = `${GEMINI_API_BASE}/${model}:streamGenerateContent?alt=sse`;
+      for (const key of this.apiKeys) {
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          let response: Response;
+          try {
+            response = await fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+              body,
+            });
+          } catch (error) {
+            console.warn(JSON.stringify({ level: "warn", location: "GeminiProvider", model, network: String(error) }));
+            break;
+          }
+          if (response.ok && response.body) return response;
+          const overloaded = response.status >= 500;
+          const tryNext = overloaded || response.status === 429 || response.status === 404;
+          console.warn(JSON.stringify({ level: "warn", location: "GeminiProvider", model, status: response.status, attempt }));
+          if (!tryNext) return response; // e.g. 400/403: a config problem, report it
+          if (last) await last.body?.cancel();
+          last = response;
+          if (overloaded && attempt === 1) {
+            await sleep(GEMINI_OVERLOAD_RETRY_MS);
+            continue;
+          }
+          break;
+        }
+      }
+    }
+    if (!last) throw new AIProviderError("Gemini: no response from any model", "UNAVAILABLE");
+    return last;
+  }
 
   async *streamChat(system: string, turns: ChatTurn[], options: GenerateOptions): AsyncIterable<string> {
-    const url = `${GEMINI_API_BASE}/${GEMINI_GENERATION_MODEL}:streamGenerateContent?alt=sse`;
     const body = JSON.stringify({
       systemInstruction: { parts: [{ text: system }] },
       contents: turns.map((turn) => ({
@@ -41,26 +78,7 @@ export class GeminiProvider implements AIProvider {
       generationConfig: { maxOutputTokens: options.maxTokens, temperature: options.temperature },
     });
 
-    let response: Response | null = null;
-    for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
-      try {
-        response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-goog-api-key": this.apiKey },
-          body,
-        });
-      } catch (error) {
-        if (attempt === GEMINI_MAX_ATTEMPTS) throw new AIProviderError(`Gemini network error: ${String(error)}`, "UNAVAILABLE");
-        await sleep(GEMINI_RETRY_BASE_MS * attempt);
-        continue;
-      }
-      const transient = response.status >= 500 || response.status === 429;
-      if (!transient || attempt === GEMINI_MAX_ATTEMPTS) break;
-      await response.body?.cancel();
-      console.warn(JSON.stringify({ level: "warn", location: "GeminiProvider", status: response.status, attempt }));
-      await sleep(GEMINI_RETRY_BASE_MS * attempt);
-    }
-    if (!response) throw new AIProviderError("Gemini: no response", "UNAVAILABLE");
+    const response = await this.open(body);
 
     if (!response.ok || !response.body) {
       // Log status + allowlisted error status only; never the key or request (E-8).

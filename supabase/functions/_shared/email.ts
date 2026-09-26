@@ -1,7 +1,7 @@
 /**
  * email.ts — outbound email through the Resend API (Infrastructure layer).
  *
- * Replaces the legacy Lovable connector gateway (PDL-002). Features:
+ * Direct Resend API integration (PDL-002). Features:
  *  - retry on 429 / 5xx with exponential backoff + jitter, honouring Retry-After
  *  - idempotency: a key that already produced a "sent" row is not sent again
  *  - one `email_send_metrics` row per logical send (admin "Email Metrics" tab)
