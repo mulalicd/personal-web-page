@@ -5,18 +5,13 @@ import awardSpeech from "@/assets/speaking-event.webp";
 import ImageLightbox from "./ImageLightbox";
 import { MetricBarGroup } from "@/components/MetricBar3D";
 import { profile } from "@/content/profile";
-import type { AccentColor, GalleryEntry } from "@/types";
+import type { GalleryEntry } from "@/types";
+import { TrophyRoom } from "@/components/campaign/TrophyRoom";
+import { BadgeCase } from "@/components/campaign/BadgeCase";
 
 const GALLERY_IMAGES: Record<GalleryEntry["imageKey"], string> = {
   awardCeremony,
   awardSpeech,
-};
-
-const AWARD_BORDER: Record<AccentColor, string> = {
-  primary: "hover:border-primary/30",
-  accent: "hover:border-accent/30",
-  purple: "hover:border-[hsl(var(--accent-purple))]/30",
-  amber: "hover:border-[hsl(var(--accent-amber))]/30",
 };
 
 const galleryImages = profile.gallery.map((entry) => ({
@@ -26,7 +21,7 @@ const galleryImages = profile.gallery.map((entry) => ({
   detail: entry.detail,
 }));
 
-/** "About" section: biography, education, competencies, awards, credentials, languages. */
+/** "About" section (Chapter 1 · The Leader): biography, education, competencies, trophies, badges, languages. */
 export function AboutSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -124,28 +119,8 @@ export function AboutSection() {
                 ))}
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-3">
-                {profile.awards.map((award) => (
-                  <div
-                    key={award.title}
-                    className={`bg-background rounded-xl p-3 border border-border transition-colors ${AWARD_BORDER[award.color]}`}
-                  >
-                    <div className="flex items-start gap-2">
-                      <span className="text-2xl leading-none mt-0.5" aria-hidden="true">{award.icon}</span>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-foreground leading-tight">{award.title}</p>
-                        <p className="text-[11px] text-muted-foreground mt-1">{award.detail}</p>
-                        <span className="inline-block mt-1.5 text-[10px] font-medium px-1.5 py-0.5 bg-primary/10 text-primary rounded-full">
-                          {award.period}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <CredentialList title="Certifications" icon="🎓" items={profile.certifications} />
-              <CredentialList title="Standards Implemented" icon="📐" items={profile.standards} />
+              <TrophyRoom />
+              <BadgeCase />
 
               <div className="bg-background p-6 rounded-2xl shadow-card">
                 <h3 className="text-lg font-semibold text-foreground mb-4">Languages</h3>
@@ -171,32 +146,5 @@ export function AboutSection() {
         onNavigate={(index) => setLightboxIndex(index)}
       />
     </section>
-  );
-}
-
-interface CredentialListProps {
-  title: string;
-  icon: string;
-  items: { name: string; detail: string }[];
-}
-
-function CredentialList({ title, icon, items }: CredentialListProps) {
-  return (
-    <div className="bg-background p-4 rounded-xl border border-border">
-      <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-        <span aria-hidden="true">{icon}</span> {title}
-      </h3>
-      <ul className="grid sm:grid-cols-2 gap-2">
-        {items.map((item) => (
-          <li key={item.name} className="flex items-center gap-2 py-1.5 px-2 bg-accent/5 rounded-lg border border-accent/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" aria-hidden="true" />
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-accent">{item.name}</p>
-              <p className="text-[10px] text-muted-foreground">{item.detail}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }

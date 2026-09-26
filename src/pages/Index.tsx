@@ -13,8 +13,28 @@ import { Footer } from "@/components/Footer";
 import { ChatBot } from "@/components/ChatBot";
 import { ParticleBackground } from "@/components/ParticleBackground";
 import { useSectionTracking } from "@/hooks/useSectionTracking";
+import { useEffect } from "react";
+import { CampaignProvider, useCampaign } from "@/hooks/useCampaign";
+import { CampaignHud } from "@/components/campaign/CampaignHud";
+import { CompletionCelebration } from "@/components/campaign/CompletionCelebration";
 
-const Index = () => {
+/** Mirrors the "Reduce effects" switch onto <html> so CSS effects can react. */
+function EffectsClass() {
+  const { effectsEnabled } = useCampaign();
+  useEffect(() => {
+    document.documentElement.classList.toggle("fx-reduced", !effectsEnabled);
+  }, [effectsEnabled]);
+  return null;
+}
+
+const Index = () => (
+  <CampaignProvider>
+    <EffectsClass />
+    <IndexContent />
+  </CampaignProvider>
+);
+
+const IndexContent = () => {
   useSectionTracking();
   return (
     <div className="min-h-screen relative">
@@ -58,6 +78,8 @@ const Index = () => {
       </main>
       <Footer />
       <ChatBot />
+      <CampaignHud />
+      <CompletionCelebration />
     </div>
   );
 };

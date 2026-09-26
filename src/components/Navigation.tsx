@@ -1,23 +1,33 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X, Sun, Moon, Sparkles, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConsultationDialog } from "@/components/ConsultationDialog";
 import { DMLogo } from "@/components/DMLogo";
 import { useTheme } from "@/hooks/useTheme";
 import { NAV_SOLID_SCROLL_OFFSET } from "@/constants";
+import { CHAPTERS } from "@/content/campaign";
+import { useCampaign } from "@/hooks/useCampaign";
 
-const navItems = [
-  { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
-  { label: "Experience", href: "#experience" },
-  { label: "Books", href: "#books" },
-  { label: "AISBP", href: "#aisbp" },
-  { label: "Portfolio", href: "#portfolio" },
-  { label: "Volunteering", href: "#volunteering" },
-  { label: "References", href: "#references" },
-  { label: "Contact", href: "#contact" },
-];
+const navItems = CHAPTERS.map((chapter) => ({ label: chapter.navLabel, href: `#${chapter.sectionId}` }));
+
+/** "Reduce effects" switch for the Career Campaign motion (Sprint 03). */
+function EffectsToggle({ size }: { size: "sm" | "md" }) {
+  const { effectsEnabled, setEffectsEnabled } = useCampaign();
+  const Icon = effectsEnabled ? Sparkles : Minus;
+  return (
+    <button
+      type="button"
+      onClick={() => setEffectsEnabled(!effectsEnabled)}
+      aria-pressed={!effectsEnabled}
+      aria-label={effectsEnabled ? "Reduce visual effects" : "Enable visual effects"}
+      title={effectsEnabled ? "Reduce effects" : "Enable effects"}
+      className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+    >
+      <Icon className={size === "sm" ? "w-4 h-4" : "w-5 h-5"} />
+    </button>
+  );
+}
 
 export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -34,10 +44,7 @@ export function Navigation() {
   }, []);
 
   useEffect(() => {
-    const sectionIds = [
-      "home", "about", "experience", "books",
-      "aisbp", "portfolio", "volunteering", "references", "contact"
-    ];
+    const sectionIds = CHAPTERS.map((chapter) => chapter.sectionId);
     const observers: IntersectionObserver[] = [];
     sectionIds.forEach((id) => {
       const element = document.getElementById(id);
@@ -104,6 +111,7 @@ export function Navigation() {
 
           {/* CTA + Theme Toggle */}
           <div className="hidden lg:flex items-center gap-3">
+            <EffectsToggle size="sm" />
             <button
               onClick={toggle}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -154,6 +162,7 @@ export function Navigation() {
                 );
               })}
               <div className="px-4 pt-4 border-t border-border mt-4 flex items-center gap-3">
+                <EffectsToggle size="md" />
                 <button
                   onClick={toggle}
                   className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"

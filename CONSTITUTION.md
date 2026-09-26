@@ -57,6 +57,8 @@ anything not approved — ask first (Director instruction, 2026-09-26).
 | 2026-09-26 | Tracked zip with `.env` | Delete from the repository |
 | 2026-09-26 | Career eras (hero orbits) | Three eras as proposed: Finance & Operations (1997–2013: USAID/KPMG, Hospitalija, LOK), Industry & Global Business (2013–2020: D.I.K., Xylon, Blue Trade, Bisnode), Education & AI Leadership (2020–today: IDSS & IMH). English names were proposed by the ACA and accepted with the division (not separately confirmed) |
 | 2026-09-26 | Chatbot model | `gemini-flash-latest` (PDL-005) |
+| 2026-09-26 | Gamification (Sprint 03) | Trophy rarity and chapter names as proposed; tone **expressive** (visible progress bar, "Chapter unlocked" banners, completion celebration) |
+| 2026-09-26 | Founder badge | Vibe-Coding Journal (https://vbj.ai-studio.wiki/) — text taken from the service's own site and README |
 
 ---
 

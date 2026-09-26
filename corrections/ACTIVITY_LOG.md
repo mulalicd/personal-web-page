@@ -49,3 +49,10 @@
 - [2026-09-26 11:35] Write: src\components\executive-presence\scene.ts
 - [2026-09-26 11:36] Write: src\components\executive-presence\ExecutivePresence.tsx
 - [2026-09-26 12:12] Write: sprints\SPRINT_03.md
+- [2026-09-26 12:19] Write: src\content\campaign.ts
+- [2026-09-26 12:19] Write: src\hooks\useCampaign.tsx
+- [2026-09-26 12:21] Write: src\components\campaign\CampaignHud.tsx
+- [2026-09-26 12:21] Write: src\components\campaign\CompletionCelebration.tsx
+- [2026-09-26 12:21] Write: src\components\campaign\TrophyRoom.tsx
+- [2026-09-26 12:21] Write: src\components\campaign\BadgeCase.tsx
+- [2026-09-26 12:23] Edit: src\components\ExperienceSection.tsx

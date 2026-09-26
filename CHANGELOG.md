@@ -17,3 +17,5 @@
 - 2026-09-26 [QUALITY] TypeScript strict mode, zero type errors, zero lint errors
 - 2026-09-26 [FEATURE] Sprint 02: "Executive Presence" hero — three.js career orbits (3 eras, 8 real employers) with depth-masked portrait, intro sequence, parallax, hover labels, reduced-motion still frame; 2D globe removed
 - 2026-09-26 [DEPS] three.js added (PDL-004)
+- 2026-09-26 [FEATURE] Sprint 03: Career Campaign — chapter progress bar + "Chapter unlocked" banners, campaign-map experience timeline (levels, eras, active mission), Trophy Room with rarity tiers and flip-to-source, badge case (certifications, standards, Vibe-Coding Journal founder badge), completion celebration, "Reduce effects" switch
+- 2026-09-26 [CONTENT] `awards` replaced by `trophies` (+ 220% enrollment trophy) and `ventures`; chatbot knowledge updated

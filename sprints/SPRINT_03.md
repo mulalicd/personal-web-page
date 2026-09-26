@@ -1,5 +1,5 @@
 # SPRINT 03 — Site-wide AAA gamification ("Career Campaign")
-Status: **PROPOSED — awaiting Director approval and content decisions**
+Status: **IMPLEMENTED — awaiting Director review on a local build** (approved 2026-09-26: rarity ok, chapters ok, tone expressive, + Vibe-Coding Journal badge)
 Created: 2026-09-26 · Commander v1.5.4 · FULL mode
 
 Goal: turn a visit into a short, premium "campaign" through Davor's career —
@@ -53,3 +53,41 @@ boards). Every number, badge and unlock is backed by `src/content/profile.ts`
 ## DONE CRITERIA
 DONE_CHECKLIST; Director review on a local build (desktop + phone) before
 publication; reduced-motion and keyboard walkthrough verified.
+
+
+---
+
+## PROGRESS (2026-09-26)
+
+| # | Item | Status |
+|---|---|---|
+| 1 | Campaign progress bar, chapter chip, "Chapter unlocked" banner | ✅ `components/campaign/CampaignHud.tsx`, state in `hooks/useCampaign.tsx` |
+| 2 | Career timeline as campaign map (LVL 1–8, era banners, active mission, light sweep) | ✅ `ExperienceSection.tsx` |
+| 3 | Trophy Room (Legendary / Epic / Rare, flip to source) | ✅ `components/campaign/TrophyRoom.tsx` |
+| 4 | Badge case + Vibe-Coding Journal founder badge | ✅ `components/campaign/BadgeCase.tsx` |
+| 5 | Visitor quest completion celebration + CTA | ✅ `components/campaign/CompletionCelebration.tsx` |
+| 6 | "Reduce effects" switch (also freezes the hero scene), reduced-motion respected, keyboard + screen reader | ✅ |
+
+Single sources: chapters in `src/content/campaign.ts` (navigation and footer
+now read it), trophies and ventures in `src/content/profile.ts`
+(`awards` removed — consumers enumerated per E-14: About section, chatbot
+knowledge, types). Verified with real-time CDP captures: desktop dark/light,
+phone 390 px (no horizontal overflow), banner, completion (9/9).
+
+## HANDOFF NOTE — Sprint 03
+Completed: items 1–6 above.
+Not completed: Director's visual sign-off (local build).
+Open risks: progress is per browser (localStorage) by design.
+Technical debt: none new (3 lint warnings — hook + provider in one file).
+Next: Director review → publish; then KRAJ or further sprints as he decides.
+
+COMMANDER COMPLIANCE — Sprint 03
+──────────────────────────────────
+Rules followed without reminder:        all applicable (M-4: badge text sourced
+                                           from the service itself; E-14: awards
+                                           consumers enumerated)
+Rules violated, caught by ACA:          1 (utility `.fx-sweep` overrode
+                                           `position` and broke card height)
+Rules violated, caught by Director:     0
+Rules that slowed work or felt wrong:   none
+New rules suggested by this sprint:     see corrections/SPRINT_03_LESSONS.md

@@ -1,0 +1,27 @@
+# Sprint 03 — Lessons Learned
+Date: 2026-09-26
+
+## Corrections Applied
+- A custom utility (`.fx-sweep { position: relative }`) was declared after
+  Tailwind's utilities and silently overrode `absolute` on the trophy face, so
+  the card shrank to its content and spacing broke. Fixed by making effect
+  utilities never set layout properties. → Effect/decoration utilities must not
+  touch `position`, `display` or sizing.
+- Side effects (analytics, banner timer) were first written inside a React
+  state updater; moved out and mirrored with a ref (updaters must stay pure —
+  StrictMode may call them twice).
+
+## Gotchas Discovered
+- `html { scroll-behavior: smooth }` makes `scrollIntoView` in headless test
+  runs land mid-animation; set `scrollBehavior = "auto"` before scripted jumps.
+- Scripted section jumps skip IntersectionObserver bands in between, so test
+  counts like "2/9" are expected; natural scrolling unlocks every chapter.
+- A tall section never reaches a high intersection ratio — use a centre band
+  (`rootMargin: "-40% 0px -55% 0px"`, threshold 0) to detect "current section".
+
+## Commander Improvement Candidates
+- ENGINEERING_RULES E-11: note that custom utilities appended after Tailwind win
+  the cascade — decoration utilities must not set layout properties.
+- For gamification on professional sites: every badge, trophy and number must
+  map to a sourced fact (P-2 style rule) — worth a general Commander rule for
+  "no invented scores or self-ratings".

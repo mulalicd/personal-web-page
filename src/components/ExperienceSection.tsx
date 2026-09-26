@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Building2, TrendingUp, Briefcase, Landmark, Heart, type LucideIcon } from "lucide-react";
 import { GlassCard } from "@/components/GlassCard";
 import { profile } from "@/content/profile";
-import type { ExperienceIcon } from "@/types";
+import type { CareerEraId, ExperienceIcon } from "@/types";
+import { useCampaign } from "@/hooks/useCampaign";
 
 const EXPERIENCE_ICONS: Record<ExperienceIcon, LucideIcon> = {
   building: Building2,
@@ -14,10 +15,26 @@ const EXPERIENCE_ICONS: Record<ExperienceIcon, LucideIcon> = {
   heart: Heart,
 };
 
-/** Career timeline, most recent role first (data: profile.experience). */
+const ERA_BY_ID = new Map(profile.careerEras.map((era) => [era.id, era]));
+const ERA_TOKEN: Record<CareerEraId, string> = {
+  finance: "--primary",
+  industry: "--accent-purple",
+  education: "--accent",
+};
+
+/**
+ * Chapter 2 · The Campaign — the career as a campaign map (Sprint 03):
+ * levels numbered chronologically (LVL 1 = 1997), era banners matching the
+ * hero orbits, the current role as the "active mission", and a light sweep
+ * when each level scrolls into view.
+ */
 export function ExperienceSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { effectsEnabled } = useCampaign();
+  const [unlocked, setUnlocked] = useState<ReadonlySet<string>>(new Set());
+  const unlock = (key: string) =>
+    setUnlocked((previous) => (previous.has(key) ? previous : new Set(previous).add(key)));
 
   return (
     <section id="experience" className="py-20 lg:py-32 bg-background">
@@ -60,40 +77,75 @@ export function ExperienceSection() {
 
           {/* Timeline */}
           <div className="relative">
-            {/* Vertical Line */}
-            <div className="absolute left-6 md:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-accent to-primary/20" />
+            {/* Campaign path */}
+            <div className="absolute left-6 md:left-8 top-0 bottom-0 w-1 -translate-x-[1px] rounded-full bg-gradient-to-b from-accent via-[hsl(var(--accent-purple))] to-primary shadow-[0_0_14px_hsl(var(--primary)/0.45)]" />
 
             {profile.experience.map((exp, index) => {
               const Icon = EXPERIENCE_ICONS[exp.icon];
+              const key = exp.organization + exp.period;
+              const level = profile.experience.length - index;
+              const era = ERA_BY_ID.get(exp.era);
+              const eraStarts = index === 0 || profile.experience[index - 1].era !== exp.era;
+              const eraColor = `hsl(var(${ERA_TOKEN[exp.era]}))`;
               return (
+                <div key={key}>
+                  {eraStarts && era && (
+                    <div className="relative mb-6 pl-16 md:pl-20">
+                      <span
+                        className="absolute left-3 md:left-5 top-1/2 h-6 w-6 -translate-y-1/2 rotate-45 rounded-sm border-2 border-background"
+                        style={{ backgroundColor: eraColor, boxShadow: `0 0 16px ${eraColor}` }}
+                        aria-hidden="true"
+                      />
+                      <p className="text-[11px] font-bold uppercase tracking-[0.22em]" style={{ color: eraColor }}>
+                        Era · {era.period}
+                      </p>
+                      <p className="text-lg font-bold text-foreground">{era.name}</p>
+                    </div>
+                  )}
                 <motion.div
-                  key={exp.organization + exp.period}
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={isInView ? { opacity: 1, x: 0 } : {}}
-                  transition={{ delay: 0.4 + index * 0.1 }}
+                  initial={effectsEnabled ? { opacity: 0, x: -30 } : false}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  onViewportEnter={() => unlock(key)}
+                  transition={{ type: "spring", stiffness: 120, damping: 18 }}
                   className="relative mb-8 last:mb-0 pl-16 md:pl-20"
                 >
-                  {/* Timeline dot */}
-                  <div className={`absolute left-0 md:left-2 w-12 h-12 rounded-full flex items-center justify-center border-4 border-background z-10 ${
-                    exp.current ? "bg-primary" : "bg-card border-primary/30"
-                  }`}>
-                    <Icon className={`w-5 h-5 ${exp.current ? "text-primary-foreground" : "text-primary"}`} />
+                  {/* Level node on the campaign path */}
+                  <div
+                    className={`absolute left-0 md:left-2 w-12 h-12 rounded-full flex items-center justify-center border-4 border-background z-10 ${
+                      exp.current ? "bg-primary" : "bg-card"
+                    }`}
+                    style={{ boxShadow: `0 0 ${exp.current ? 26 : 14}px ${eraColor}` }}
+                  >
+                    <Icon className={`w-5 h-5 ${exp.current ? "text-primary-foreground" : "text-primary"}`} aria-hidden="true" />
+                    {exp.current && effectsEnabled && (
+                      <span className="absolute inset-0 rounded-full border-2 border-primary animate-ping opacity-40" aria-hidden="true" />
+                    )}
                   </div>
 
                   {/* Content Card */}
                   <GlassCard
-                    delay={0.4 + index * 0.1}
-                    className={`p-6 lg:p-8 ${
-                      exp.current ? "border-2 border-primary/30" : ""
+                    delay={0}
+                    className={`fx-sweep p-6 lg:p-8 ${unlocked.has(key) && effectsEnabled ? "fx-sweep-run" : ""} ${
+                      exp.current ? "border-2 border-primary/40" : ""
                     }`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                       <div>
-                        {exp.current && (
-                          <span className="inline-block px-3 py-1 bg-accent/10 text-accent rounded-full text-xs font-medium mb-2">
-                            Current Role
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <span
+                            className="rounded-md px-2 py-0.5 text-[10px] font-extrabold tracking-[0.18em]"
+                            style={{ color: eraColor, backgroundColor: `hsl(var(${ERA_TOKEN[exp.era]}) / 0.12)` }}
+                          >
+                            LVL {level}
                           </span>
-                        )}
+                          {exp.current && (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+                              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" aria-hidden="true" />
+                              Active mission · Current role
+                            </span>
+                          )}
+                        </div>
                         <h3 className="text-xl font-bold text-foreground">
                           {exp.title}
                         </h3>
@@ -142,6 +194,7 @@ export function ExperienceSection() {
                     )}
                   </GlassCard>
                 </motion.div>
+                </div>
               );
             })}
           </div>

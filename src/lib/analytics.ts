@@ -25,7 +25,12 @@ export type AnalyticsEvent =
   | "cv_download_started"
   | "cv_status_check_success"
   | "cv_status_check_error"
-  | "section_view";
+  | "section_view"
+  | "campaign_chapter_unlocked"
+  | "campaign_completed"
+  | "campaign_effects_toggled"
+  | "trophy_flipped"
+  | "venture_badge_click";
 
 export type EventResult = "success" | "error" | "rate_limited" | "validation_error" | "info";
 

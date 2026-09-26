@@ -110,36 +110,65 @@ export const profile: Profile = {
     },
   ],
 
-  awards: [
+  // Trophy Room (Sprint 03). Rarity = Director decision 2026-09-26.
+  trophies: [
     {
+      rarity: "legendary",
       icon: "🏆",
+      headline: "2025",
       title: "Business Leader for Sustainable Development in BiH",
       period: "2025",
+      source: "Internationale Deutsche Schule Sarajevo — Winner, Small Company category, thematic area “People”",
       detail:
-        "Winner, Small Company category, thematic area “People” — Internationale Deutsche Schule Sarajevo. " +
-        "Awarded by UNDP, the United Nations, the Embassy of Sweden and the Foreign Trade Chamber of BiH",
-      color: "accent",
+        "Bosnia and Herzegovina’s highest national recognition for sustainable leadership, awarded by UNDP, the United Nations, the Embassy of Sweden and the Foreign Trade Chamber of BiH",
     },
     {
+      rarity: "epic",
       icon: "🎯",
-      title: "673% Net Profit Growth — €51K → €394K",
+      headline: "673%",
+      title: "Net Profit Growth — €51K → €394K",
       period: "Jul 2018 – Jul 2019",
-      detail: "CEO / Managing Director & COO, Blue Trade Ltd. (Krautz-Temax Group)",
-      color: "primary",
+      source: "CEO / Managing Director & COO, Blue Trade Ltd. (Krautz-Temax Group)",
+      detail: "Strategic business plans for three divisions, delivered over 18 months",
     },
     {
+      rarity: "epic",
       icon: "📈",
-      title: "Operating Income €12M → €16M (+33%)",
+      headline: "+33%",
+      title: "Operating Income €12M → €16M",
       period: "Apr 2015 – Apr 2016",
-      detail: "CEO (Assistant General Manager) / COO, Xylon Corporation Ltd. (Plena Group)",
-      color: "purple",
+      source: "CEO (Assistant General Manager) / COO, Xylon Corporation Ltd. (Plena Group)",
+      detail: "Corporate strategy aligned with board directives, in one year",
     },
     {
+      rarity: "rare",
       icon: "🤝",
-      title: "€11M+ Contracts Secured",
+      headline: "€11M+",
+      title: "Contracts Secured",
       period: "Career total",
-      detail: "Long-term partnerships with key clients and suppliers",
-      color: "amber",
+      source: "Long-term partnerships with key clients and suppliers",
+      detail: "Negotiated across his executive career",
+    },
+    {
+      rarity: "rare",
+      icon: "🎓",
+      headline: "220%",
+      title: "Enrollment Growth — 80 → 256 students",
+      period: "Aug 2020 – Aug 2025",
+      source: "CEO / Managing Director, Internationale Deutsche Schule Sarajevo & International Montessori House",
+      detail: "Strategic development plans and predictive analytics",
+    },
+  ],
+
+  // Director decision 2026-09-26 (Sprint 03): founder badge for his own service.
+  ventures: [
+    {
+      name: "Vibe-Coding Journal",
+      role: "Creator",
+      tagline: "Daily intelligence digest for vibe-coders",
+      description:
+        "A daily intelligence digest with a University, a Dictionary, an Assistant and a Prompt School for people who build software by directing AI coding tools.",
+      url: "https://vbj.ai-studio.wiki/",
     },
   ],
 

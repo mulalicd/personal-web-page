@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { profile } from "@/content/profile";
+import { useCampaign } from "@/hooks/useCampaign";
 import { ExecutivePresenceScene, type HoverInfo, type OrbitNode } from "./scene";
 
 interface ExecutivePresenceProps {
@@ -41,13 +42,15 @@ export default function ExecutivePresence({ portraitRef }: ExecutivePresenceProp
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hover, setHover] = useState<HoverInfo | null>(null);
   const [enabled] = useState(supportsWebGL);
+  const { effectsEnabled } = useCampaign();
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!enabled || !canvas || !container) return;
 
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // OS setting OR the site's "Reduce effects" switch → still frame.
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches || !effectsEnabled;
     let scene: ExecutivePresenceScene;
     try {
       scene = new ExecutivePresenceScene({
@@ -102,7 +105,7 @@ export default function ExecutivePresence({ portraitRef }: ExecutivePresenceProp
       document.removeEventListener("visibilitychange", sync);
       scene.dispose();
     };
-  }, [enabled, portraitRef]);
+  }, [enabled, portraitRef, effectsEnabled]);
 
   if (!enabled) return null;
 

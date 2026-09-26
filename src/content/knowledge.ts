@@ -62,7 +62,10 @@ ${bulletList(source.heroMetrics.map((m) => `${m.value} — ${m.label}`))}
 ${bulletList(source.aboutMetrics.map((m) => `${m.value} — ${m.label}`))}
 
 ## AWARDS AND HIGHLIGHTS
-${bulletList(source.awards.map((a) => `${a.title} (${a.period}) — ${a.detail}`))}
+${bulletList(source.trophies.map((t) => `${t.title} (${t.period}) — ${t.source}. ${t.detail}`))}
+
+## PRODUCTS HE CREATED
+${bulletList(source.ventures.map((v) => `${v.name} (${v.role}) — ${v.tagline}. ${v.description} ${v.url}`))}
 
 ## CAREER (most recent first)
 ${experience}

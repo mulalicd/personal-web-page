@@ -3,6 +3,7 @@ import { CVRequestDialog } from "@/components/CVRequestDialog";
 import { DMLogo } from "@/components/DMLogo";
 import { forwardRef } from "react";
 import { profile } from "@/content/profile";
+import { CHAPTERS } from "@/content/campaign";
 
 // Forward ref button for DialogTrigger compatibility
 const CVButton = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
@@ -20,16 +21,10 @@ const CVButton = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLBu
 );
 CVButton.displayName = "CVButton";
 
-const footerLinks = [
-  { label: "About", href: "#about" },
-  { label: "Experience", href: "#experience" },
-  { label: "Books", href: "#books" },
-  { label: "AISBP", href: "#aisbp" },
-  { label: "Portfolio", href: "#portfolio" },
-  { label: "Volunteering", href: "#volunteering" },
-  { label: "References", href: "#references" },
-  { label: "Contact", href: "#contact" },
-];
+const footerLinks = CHAPTERS.filter((chapter) => chapter.number > 0).map((chapter) => ({
+  label: chapter.navLabel,
+  href: `#${chapter.sectionId}`,
+}));
 
 export function Footer() {
   return (

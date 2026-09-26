@@ -54,13 +54,30 @@ export interface EducationEntry {
   period: string;
 }
 
-export interface AwardEntry {
-  /** Emoji shown on the award card. */
+/** Trophy rarity tier (Director decision 2026-09-26, Sprint 03). */
+export type TrophyRarity = "legendary" | "epic" | "rare";
+
+/** An award or headline achievement shown in the Trophy Room. */
+export interface Trophy {
+  rarity: TrophyRarity;
+  /** Emoji on the trophy face. */
   icon: string;
+  /** Big figure or short name on the face, e.g. "673%". */
+  headline: string;
   title: string;
   period: string;
+  /** Back of the card: where and how it was achieved. */
+  source: string;
   detail: string;
-  color: AccentColor;
+}
+
+/** Something Davor created and runs (shown as a founder badge). */
+export interface Venture {
+  name: string;
+  role: string;
+  tagline: string;
+  description: string;
+  url: string;
 }
 
 export interface GalleryEntry {
@@ -139,7 +156,8 @@ export interface Profile {
   aboutMetrics: HeadlineMetric[];
   competencies: string[];
   education: EducationEntry[];
-  awards: AwardEntry[];
+  trophies: Trophy[];
+  ventures: Venture[];
   gallery: GalleryEntry[];
   certifications: CredentialEntry[];
   standards: CredentialEntry[];
