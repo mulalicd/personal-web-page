@@ -1,106 +1,54 @@
- import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
- import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
- 
- const corsHeaders = {
-   "Access-Control-Allow-Origin": "*",
-   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
- };
- 
- // Email validation regex
- const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
- 
- // Sanitize string input
- function sanitizeString(input: string | undefined | null, maxLength: number): string {
-   if (!input) return "";
-   return input
-     .trim()
-     .slice(0, maxLength)
-     .replace(/[<>]/g, "");
- }
- 
- const handler = async (req: Request): Promise<Response> => {
-   console.log("Check CV status function called");
-   
-   // Handle CORS preflight
-   if (req.method === "OPTIONS") {
-     return new Response("ok", { headers: corsHeaders });
-   }
- 
-   try {
-     const body = await req.json();
-     
-     // Sanitize and validate email
-     const email = sanitizeString(body.email, 255)?.toLowerCase();
- 
-     if (!email || !emailRegex.test(email)) {
-       return new Response(
-         JSON.stringify({ error: "Please provide a valid email address" }),
-         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-       );
-     }
- 
-     console.log("Checking status for email (hashed):", email.substring(0, 3) + "***");
- 
-     // Create Supabase client with service role
-     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-     const supabase = createClient(supabaseUrl, supabaseServiceKey);
- 
-     // Check rate limit
-     const { data: rateLimitOk } = await supabase
-       .rpc("check_rate_limit", {
-         p_identifier: email,
-         p_action_type: "cv_status_check",
-         p_max_attempts: 10,
-         p_window_minutes: 5,
-         p_block_minutes: 30,
-       });
- 
-     if (rateLimitOk === false) {
-       return new Response(
-         JSON.stringify({ error: "Too many requests. Please try again later." }),
-         { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
-       );
-     }
- 
-     // Query CV request - only return safe fields (no token, no internal id)
-     const { data, error } = await supabase
-       .from("cv_requests")
-       .select("status, name, created_at")
-       .eq("email", email)
-       .order("created_at", { ascending: false })
-       .limit(1)
-       .maybeSingle();
- 
-     if (error) {
-       console.error("Database error:", error.message);
-       throw error;
-     }
- 
-     if (!data) {
-       return new Response(
-         JSON.stringify({ found: false }),
-         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-       );
-     }
- 
-     // Return only necessary status info (no sensitive data)
-     return new Response(
-       JSON.stringify({
-         found: true,
-         status: data.status,
-         name: data.name,
-         created_at: data.created_at,
-       }),
-       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-     );
-   } catch (error: any) {
-     console.error("Error in check-cv-status:", error.message);
-     return new Response(
-       JSON.stringify({ error: "An error occurred. Please try again." }),
-       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-     );
-   }
- };
- 
- serve(handler);
+/**
+ * POST /functions/v1/check-cv-status
+ * Role required: none — possession of the personal link token is the credential
+ * Body: cvStatusSchema — { token: uuid } (from the approval email link)
+ * Response: { success: true, data: { status: "pending" | "approved" | "rejected", downloadUrl?: string } }
+ *   downloadUrl is a short-lived signed URL, present only when approved.
+ * Errors: 400 (validation), 404 (unknown token), 429 (rate limit), 500 (unexpected)
+ */
+import { cvStatusSchema } from "../../../src/lib/validation/schemas.ts";
+import {
+  CV_BUCKET,
+  CV_DOWNLOAD_FILENAME,
+  CV_OBJECT_PATH,
+  CV_SIGNED_URL_TTL_SECONDS,
+  RATE_LIMITS,
+} from "../_shared/constants.ts";
+import { clientFingerprint, fail, handlePreflight, logError, ok, rateLimited } from "../_shared/http.ts";
+import { checkRateLimit } from "../_shared/rate-limit.ts";
+import { serviceClient } from "../_shared/supabase.ts";
+
+Deno.serve(async (req) => {
+  const preflight = handlePreflight(req);
+  if (preflight) return preflight;
+  if (req.method !== "POST") return fail(req, 405, "Method not allowed.", "METHOD_NOT_ALLOWED");
+
+  try {
+    const parsed = cvStatusSchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) return fail(req, 400, "This link is not valid.", "VALIDATION_ERROR");
+
+    const db = serviceClient();
+    const limit = await checkRateLimit(db, await clientFingerprint(req), "cv_status", RATE_LIMITS.cvStatus);
+    if (!limit.allowed) return rateLimited(req, limit.retryAfter);
+
+    const { data: request, error } = await db
+      .from("cv_requests")
+      .select("status")
+      .eq("token", parsed.data.token)
+      .maybeSingle();
+    if (error) throw new Error(`cv_requests token lookup failed: ${error.message}`);
+    if (!request) return fail(req, 404, "This link is not valid.", "NOT_FOUND");
+
+    if (request.status !== "approved") return ok(req, { status: request.status });
+
+    const { data: signed, error: signError } = await db.storage
+      .from(CV_BUCKET)
+      .createSignedUrl(CV_OBJECT_PATH, CV_SIGNED_URL_TTL_SECONDS, { download: CV_DOWNLOAD_FILENAME });
+    if (signError || !signed) throw new Error(`createSignedUrl failed: ${signError?.message ?? "no data"}`);
+
+    return ok(req, { status: "approved", downloadUrl: signed.signedUrl });
+  } catch (error) {
+    logError("check-cv-status", error);
+    return fail(req, 500, "Something went wrong. Please try again in a few minutes.", "INTERNAL_ERROR");
+  }
+});

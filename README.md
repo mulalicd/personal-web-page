@@ -1,74 +1,58 @@
-# Welcome to your Lovable project
+# Davor Mulalić — Personal Website
 
-## Project info
+Professional website of Davor Mulalić, C-Level AI Leader:
+https://mulalic.ai-studio.wiki
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Governed by [Commander](https://github.com/IDSS123a/commander) — start with
+`CLAUDE.md`, then `CONSTITUTION.md` (project rules and Director decisions) and
+the current sprint in `sprints/`.
 
-## How can I edit this code?
+## Stack (PDL-001)
 
-There are several ways of editing your application.
+| Layer | Technology |
+|---|---|
+| Frontend | Vite + React 18 + TypeScript (strict), Tailwind, shadcn/ui, framer-motion |
+| Backend | Supabase project `qixpdeqjrkvfurqhzvtc` — Postgres (RLS), Auth, Storage, Edge Functions |
+| AI chatbot | Gemini (`gemini-2.5-flash`) behind `supabase/functions/_shared/ai/` |
+| Email | Resend API |
+| Hosting | Vercel (+ Vercel Web Analytics) |
 
-**Use Lovable**
+## Where things live
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+| What | Where |
+|---|---|
+| Every fact about Davor (single source of truth) | `src/content/profile.ts` |
+| Chatbot knowledge (generated from profile.ts) | `src/content/knowledge.ts` |
+| Validation schemas (browser + Edge Functions) | `src/lib/validation/schemas.ts` |
+| Calls to Edge Functions | `src/lib/api.ts` |
+| Edge Functions | `supabase/functions/*` |
+| Database schema | `supabase/migrations/` |
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Local development
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+npm install
+cp .env.example .env   # fill in the two public values
+npm run dev            # http://localhost:8080
 ```
 
-**Edit a file directly in GitHub**
+Checks before every commit:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```sh
+npx tsc --noEmit -p tsconfig.app.json
+npm run lint
+npm run build
+node .claude/hooks/project-guard.js --scan
+```
 
-**Use GitHub Codespaces**
+## Backend operations (Supabase CLI, linked to the project)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```sh
+supabase db push --linked                      # apply new migrations
+supabase functions deploy <name> --use-api     # deploy one Edge Function
+supabase secrets set NAME=value                # server-side secrets
+```
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
- 
+Edge Function secrets: `GEMINI_API_KEY_1`, `RESEND_API_KEY`, `EMAIL_FROM`,
+optional `RESEND_WEBHOOK_SECRET`. The admin role is assigned by SQL only —
+public sign-up is disabled.

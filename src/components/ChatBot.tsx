@@ -2,93 +2,66 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, User, Loader2 } from "lucide-react";
 import { DMLogo } from "@/components/DMLogo";
+import { BACKEND_UNAVAILABLE_MESSAGE, CHAT_HISTORY_LIMIT, CHAT_MESSAGE_MAX_LENGTH, CHAT_SUGGESTIONS } from "@/constants";
+import { functionsBaseUrl } from "@/integrations/supabase/client";
 
 type Message = { role: "user" | "assistant"; content: string };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-assistant`;
-
-async function streamChat({
-  messages,
-  onDelta,
-  onDone,
-  onError,
-}: {
-  messages: Message[];
+interface StreamHandlers {
   onDelta: (text: string) => void;
   onDone: () => void;
-  onError: (error: string) => void;
-}) {
+  onError: (message: string) => void;
+}
+
+/**
+ * Stream an answer from the chat-assistant Edge Function.
+ * Server format: `data: {"text": "..."}` lines, `data: {"error": "..."}` on a
+ * mid-stream failure, and `data: [DONE]` at the end.
+ */
+async function streamChat(messages: Message[], handlers: StreamHandlers): Promise<void> {
+  if (!functionsBaseUrl) {
+    handlers.onError(BACKEND_UNAVAILABLE_MESSAGE);
+    return;
+  }
   try {
-    const resp = await fetch(CHAT_URL, {
+    const response = await fetch(`${functionsBaseUrl}/chat-assistant`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-      },
-      body: JSON.stringify({ messages }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: messages.slice(-CHAT_HISTORY_LIMIT) }),
     });
 
-    if (!resp.ok) {
-      const errorData = await resp.json().catch(() => ({ error: "Connection failed" }));
-      onError(errorData.error || "Something went wrong. Please try again.");
+    if (!response.ok || !response.body) {
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      handlers.onError(body?.error ?? "The assistant is temporarily unavailable. Please try again later.");
       return;
     }
 
-    if (!resp.body) {
-      onError("No response received");
-      return;
-    }
-
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
+    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
     let buffer = "";
-
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-
-      let newlineIndex: number;
-      while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
-        let line = buffer.slice(0, newlineIndex);
-        buffer = buffer.slice(newlineIndex + 1);
-        if (line.endsWith("\r")) line = line.slice(0, -1);
-        if (line.startsWith(":") || line.trim() === "") continue;
-        if (!line.startsWith("data: ")) continue;
-
-        const jsonStr = line.slice(6).trim();
-        if (jsonStr === "[DONE]") break;
-
+      buffer += value;
+      let newline: number;
+      while ((newline = buffer.indexOf("\n")) !== -1) {
+        const line = buffer.slice(0, newline).trim();
+        buffer = buffer.slice(newline + 1);
+        if (!line.startsWith("data:")) continue;
+        const payload = line.slice(5).trim();
+        if (payload === "[DONE]") continue;
         try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content;
-          if (content) onDelta(content);
+          const event = JSON.parse(payload) as { text?: string; error?: string };
+          if (event.text) handlers.onDelta(event.text);
+          if (event.error) handlers.onError(event.error);
         } catch {
-          buffer = line + "\n" + buffer;
-          break;
+          console.error("[chat] malformed stream line");
         }
       }
     }
-
-    // Flush remaining buffer
-    if (buffer.trim()) {
-      for (let raw of buffer.split("\n")) {
-        if (!raw) continue;
-        if (raw.endsWith("\r")) raw = raw.slice(0, -1);
-        if (!raw.startsWith("data: ")) continue;
-        const jsonStr = raw.slice(6).trim();
-        if (jsonStr === "[DONE]") continue;
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content;
-          if (content) onDelta(content);
-        } catch { /* ignore */ }
-      }
-    }
-
-    onDone();
-  } catch (err) {
-    onError("Connection failed. Please check your internet and try again.");
+    handlers.onDone();
+  } catch (error) {
+    console.error("[chat] request failed:", error);
+    handlers.onError("Connection failed. Please check your internet and try again.");
   }
 }
 
@@ -146,6 +119,7 @@ export function ChatBot() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPulse, setShowPulse] = useState(true);
+  const [errorNotice, setErrorNotice] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -168,39 +142,32 @@ export function ChatBot() {
     if (isOpen) setShowPulse(false);
   }, [isOpen]);
 
-  const handleSend = async () => {
-    const text = input.trim();
+  /** Send a question (typed or a suggestion chip) and stream the answer in. */
+  const send = async (rawText: string) => {
+    const text = rawText.trim().slice(0, CHAT_MESSAGE_MAX_LENGTH);
     if (!text || isLoading) return;
 
-    const userMsg: Message = { role: "user", content: text };
+    const userMessage: Message = { role: "user", content: text };
+    const history = [...messages, userMessage];
     setInput("");
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages(history);
     setIsLoading(true);
 
-    let assistantContent = "";
-
-    const upsertAssistant = (chunk: string) => {
-      assistantContent += chunk;
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "assistant") {
-          return prev.map((m, i) =>
-            i === prev.length - 1 ? { ...m, content: assistantContent } : m
-          );
-        }
-        return [...prev, { role: "assistant", content: assistantContent }];
-      });
-    };
-
-    await streamChat({
-      messages: [...messages, userMsg],
-      onDelta: upsertAssistant,
+    let answer = "";
+    await streamChat(history, {
+      onDelta: (chunk) => {
+        answer += chunk;
+        setMessages((previous) => {
+          const last = previous[previous.length - 1];
+          if (last?.role === "assistant") {
+            return [...previous.slice(0, -1), { role: "assistant", content: answer }];
+          }
+          return [...previous, { role: "assistant", content: answer }];
+        });
+      },
       onDone: () => setIsLoading(false),
-      onError: (error) => {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: `⚠️ ${error}` },
-        ]);
+      onError: (message) => {
+        setErrorNotice(message);
         setIsLoading(false);
       },
     });
@@ -209,7 +176,7 @@ export function ChatBot() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      void send(input);
     }
   };
 
@@ -248,7 +215,7 @@ export function ChatBot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 h-[min(500px,70vh)] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 h-[min(500px,calc(100dvh-11rem))] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card">
@@ -273,14 +240,12 @@ export function ChatBot() {
                     Hi! I'm Davor's AI assistant. Ask me about his experience, books, portfolio, or anything else!
                   </p>
                   <div className="flex flex-wrap justify-center gap-1.5">
-                    {["What are Davor's key achievements?", "Tell me about his books", "What industries has he worked in?"].map(
+                    {CHAT_SUGGESTIONS.map(
                       (q) => (
                         <button
                           key={q}
-                          onClick={() => {
-                            setInput(q);
-                            setTimeout(() => handleSend(), 50);
-                          }}
+                          type="button"
+                          onClick={() => void send(q)}
                           className="px-3 py-1.5 text-xs bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/80 transition-colors"
                         >
                           {q}
@@ -293,6 +258,7 @@ export function ChatBot() {
 
               {messages.map((msg, i) => (
                 <motion.div
+                  // Messages are append-only, so the index is a stable key here.
                   key={i}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -333,6 +299,11 @@ export function ChatBot() {
                 </div>
               )}
 
+              {errorNotice && (
+                <p role="alert" className="text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">
+                  {errorNotice}
+                </p>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -343,14 +314,21 @@ export function ChatBot() {
                   ref={inputRef}
                   type="text"
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    setErrorNotice(null);
+                  }}
+                  maxLength={CHAT_MESSAGE_MAX_LENGTH}
+                  aria-label="Your question for the assistant"
                   onKeyDown={handleKeyDown}
                   placeholder="Ask about Davor..."
                   className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                   disabled={isLoading}
                 />
                 <button
-                  onClick={handleSend}
+                  type="button"
+                  onClick={() => void send(input)}
+                  aria-label="Send question"
                   disabled={!input.trim() || isLoading}
                   className="px-3 py-2 bg-primary text-primary-foreground rounded-lg disabled:opacity-50 hover:bg-primary/90 transition-colors"
                 >

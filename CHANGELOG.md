@@ -1,0 +1,17 @@
+# CHANGELOG
+
+- 2026-09-26 [SETUP] Project placed under Commander v1.5.4 (automation, constitution, decision log, Sprint 01)
+- 2026-09-26 [BACKEND] New Supabase project qixpdeqjrkvfurqhzvtc: consolidated schema, RLS deny-by-default, no auto-admin trigger, private `cv` bucket
+- 2026-09-26 [BACKEND] Edge Functions rewritten without Lovable gateways: Resend email, Gemini chatbot behind AIProvider, CORS allowlist, rate limits
+- 2026-09-26 [FEATURE] CV flow: approval email goes to the requester with a personal token link; CV served only via short-lived signed URL
+- 2026-09-26 [FEATURE] Single consultation flow; Zoho calendar opened by a direct click
+- 2026-09-26 [FIX] Name validation accepts all Unicode letters (č ć š ž đ)
+- 2026-09-26 [FIX] Hero metrics show "€11M+" instead of "€11+"; chat suggestions send; no horizontal scroll on mobile
+- 2026-09-26 [FIX] Admin: no false "Access denied" after sign-in; truthful email-sent toasts; public sign-up removed
+- 2026-09-26 [FIX] Rate limit off-by-one (a budget of 3 blocked the 3rd attempt)
+- 2026-09-26 [CONTENT] All facts centralised in src/content/profile.ts and corrected against LinkedIn / CV / Director decisions
+- 2026-09-26 [CONTENT] LinkedIn share image as PNG with profile photo; meta tags, sitemap, robots updated
+- 2026-09-26 [PERF] Images converted to WebP (award photo 2.5 MB → 251 KB); vendor chunks split; secondary routes lazy-loaded
+- 2026-09-26 [ANALYTICS] Vercel Web Analytics replaces the localStorage-only analytics tab
+- 2026-09-26 [ENV] VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY point to the new project; secrets GEMINI_API_KEY_1, RESEND_API_KEY, EMAIL_FROM
+- 2026-09-26 [QUALITY] TypeScript strict mode, zero type errors, zero lint errors

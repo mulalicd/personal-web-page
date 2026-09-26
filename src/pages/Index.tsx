@@ -27,7 +27,7 @@ const Index = () => {
       </a>
       <ParticleBackground />
       <Navigation />
-      <main id="main-content" tabIndex={-1} className="relative z-10 outline-none">
+      <main id="main-content" tabIndex={-1} className="relative z-10 outline-none overflow-x-clip">
         <ErrorBoundary sectionName="Hero">
           <HeroSection />
         </ErrorBoundary>

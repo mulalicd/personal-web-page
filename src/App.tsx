@@ -7,14 +7,15 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { Analytics } from "@vercel/analytics/react";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
-import CVStatus from "./pages/CVStatus";
 import NotFound from "./pages/NotFound";
 
-// Heavy admin route — lazy loaded so it never lands in the public bundle.
+// Secondary routes are lazy loaded so they never weigh down the public homepage bundle.
 const Admin = lazy(() => import("./pages/Admin"));
+const Auth = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const CVStatus = lazy(() => import("./pages/CVStatus"));
 
 const RouteFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -32,23 +33,18 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route
-              path="/admin"
-              element={
-                <Suspense fallback={<RouteFallback />}>
-                  <Admin />
-                </Suspense>
-              }
-            />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/cv-status" element={<CVStatus />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={<RouteFallback />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/cv-status" element={<CVStatus />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
+        <Analytics />
         </TooltipProvider>
       </AuthProvider>
     </ThemeProvider>

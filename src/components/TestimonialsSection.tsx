@@ -2,46 +2,11 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { profile } from "@/content/profile";
 
-const testimonials = [
-  {
-    text: "Davor stands out as an exceptional leader who leads by example rather than just authority. He is deeply organized and inspiring, never hesitating to work alongside his team to reach a goal. His open-minded approach fostered a culture where my ideas were not only heard but championed, pushing me to exceed my own expectations. He combines vast global experience with a genuine willingness to learn from his employees—a rare and motivating trait.",
-    author: "Bianca Badrov",
-    organization: "Blue Trade Ltd.",
-    source: "Digital Marketing Enthusiast",
-  },
-  {
-    text: "A major asset to our holding company, Davor demonstrated an exceptional ability to resourcefully manage and prioritize multiple high-stakes projects simultaneously. His integrity, connectedness, and persistence went far beyond the call of duty. Because of his unwavering commitment and strategic foresight, a critical $1 billion project was successfully extended for another ten-year period.",
-    author: "Daniel Kanu",
-    organization: "DIK International Limited, Nigeria",
-    source: "Managing Director",
-  },
-  {
-    text: "Mr. Mulalić's greatest assets are his tireless work ethic and versatile skillset. He possesses a unique ability to bridge divides, working effectively with diverse ethnic groups in complex environments. Beyond his management capabilities, his technical skills in design and his uplifting sense of humor make him a unifying force within any organization.",
-    author: "Laura Brodrick",
-    organization: "Danish Refugee Council",
-    source: "Project Manager",
-  },
-  {
-    text: "Davor is an enthusiastic champion of the team's mission who takes immense pride in complex problem-solving. He is assertive yet conscientious, bringing a consistently positive attitude that drives results. His approach to business finance operations is characterized by a dedication to finding solutions where others see only obstacles.",
-    author: "James A. Gomez",
-    organization: "USAID-Business Finance",
-    source: "Chief Operating Officer",
-  },
-  {
-    text: "In handling the most complex management tasks, Mr. Mulalić has proven himself to be indispensable. He is a profoundly trustworthy professional with a collaborative team approach, yet he possesses the distinct capability to initiate and drive business independently. His strategic instincts allow him to navigate complex operational challenges with confidence.",
-    author: "Stipe Hrkać",
-    organization: "Hospitalija Trgovina d.o.o.",
-    source: "Director",
-  },
-  {
-    text: "I unreservedly recommend Mr. Davor Mulalić for any high-level management position. His tenure was defined by unwavering responsibility and reliability. He possesses a rare talent for efficiently optimizing human, material, and financial resources simultaneously, ensuring that organizational potential is fully maximized.",
-    author: "Nusret Čaušević",
-    organization: "LOK Microcredit Foundation",
-    source: "General Director",
-  },
-];
+const testimonials = profile.testimonials;
 
+/** References carousel. */
 export function TestimonialsSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -119,19 +84,23 @@ export function TestimonialsSection() {
                     {testimonials[currentIndex].organization}
                   </p>
                   <p className="text-sm text-primary mt-1">
-                    {testimonials[currentIndex].source}
+                    {testimonials[currentIndex].role}
                   </p>
                 </div>
 
                 {/* Navigation */}
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
+                    aria-label="Previous reference"
                     onClick={prev}
                     className="w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors"
                   >
                     <ChevronLeft className="w-5 h-5 text-foreground" />
                   </button>
                   <button
+                    type="button"
+                    aria-label="Next reference"
                     onClick={next}
                     className="w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors"
                   >
@@ -145,7 +114,10 @@ export function TestimonialsSection() {
             <div className="flex justify-center gap-2 mt-8">
               {testimonials.map((_, index) => (
                 <button
-                  key={index}
+                  key={testimonials[index].author}
+                  type="button"
+                  aria-label={`Show reference ${index + 1} of ${testimonials.length}`}
+                  aria-current={index === currentIndex}
                   onClick={() => setCurrentIndex(index)}
                   className={`w-2 h-2 rounded-full transition-colors ${
                     index === currentIndex ? "bg-primary" : "bg-muted"

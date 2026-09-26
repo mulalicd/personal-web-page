@@ -1,167 +1,77 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendEmailWithRetry } from "../_shared/email-retry.ts";
+/**
+ * POST /functions/v1/request-cv
+ * Role required: none (public visitor)
+ * Body: cvRequestSchema — { email, name?, idempotencyKey? }
+ * Response: { success: true, data: { alreadyRequested: boolean } }
+ * Errors: 400 (validation), 429 (rate limit), 500 (unexpected)
+ *
+ * Stores a pending request and notifies the Director. The visitor never learns
+ * whether an address was already approved — only that the request is on file.
+ */
+import { cvRequestSchema } from "../../../src/lib/validation/schemas.ts";
+import { ADMIN_NOTIFY_EMAIL, RATE_LIMITS, SITE_URL } from "../_shared/constants.ts";
+import { sendEmail } from "../_shared/email.ts";
+import { emailLayout, escapeHtml, singleLine } from "../_shared/html.ts";
+import { clientFingerprint, fail, handlePreflight, logError, ok, rateLimited } from "../_shared/http.ts";
+import { checkRateLimit } from "../_shared/rate-limit.ts";
+import { serviceClient } from "../_shared/supabase.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-interface CVRequestBody {
-  email: string;
-  name?: string;
-}
-
-// Email validation regex
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// Sanitize string input
-function sanitizeString(input: string | undefined | null, maxLength: number): string {
-  if (!input) return "";
-  return input
-    .trim()
-    .slice(0, maxLength)
-    .replace(/[<>]/g, ""); // Remove potential HTML tags
-}
-
-const handler = async (req: Request): Promise<Response> => {
-  console.log("CV request function called");
-  
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+Deno.serve(async (req) => {
+  const preflight = handlePreflight(req);
+  if (preflight) return preflight;
+  if (req.method !== "POST") return fail(req, 405, "Method not allowed.", "METHOD_NOT_ALLOWED");
 
   try {
-    const body = await req.json();
-    
-    // Sanitize and validate inputs
-    const email = sanitizeString(body.email, 255)?.toLowerCase();
-    const name = sanitizeString(body.name, 100) || null;
-
-    // Validate email format
-    if (!email || !emailRegex.test(email)) {
-      return new Response(
-        JSON.stringify({ error: "Please provide a valid email address" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    const parsed = cvRequestSchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) {
+      return fail(req, 400, parsed.error.errors[0]?.message ?? "Please check your details.", "VALIDATION_ERROR");
     }
+    const { email } = parsed.data;
+    const name = parsed.data.name?.trim() || null;
 
-    console.log("Processing CV request for email (hashed):", email.substring(0, 3) + "***");
+    const db = serviceClient();
+    const limit = await checkRateLimit(db, `${await clientFingerprint(req)}:${email}`, "cv_request", RATE_LIMITS.cvRequest);
+    if (!limit.allowed) return rateLimited(req, limit.retryAfter);
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Check rate limit (5 requests per 15 minutes per email) — v2 returns retry_after
-    const { data: rateLimitData, error: rateLimitError } = await supabase
-      .rpc("check_rate_limit_v2", {
-        p_identifier: email,
-        p_action_type: "cv_request",
-        p_max_attempts: 5,
-        p_window_minutes: 15,
-        p_block_minutes: 60,
-      });
-
-    if (rateLimitError) {
-      console.error("Rate limit check error:", rateLimitError);
-    }
-
-    if (rateLimitData && rateLimitData.allowed === false) {
-      const retryAfter = rateLimitData.retry_after ?? 60;
-      console.log("Rate limit exceeded for:", email.substring(0, 3) + "***", "retry_after:", retryAfter);
-      return new Response(
-        JSON.stringify({
-          error: "Too many requests. Please wait before trying again.",
-          retry_after: retryAfter,
-          endpoint: "cv_request",
-        }),
-        {
-          status: 429,
-          headers: {
-            "Content-Type": "application/json",
-            "Retry-After": String(retryAfter),
-            ...corsHeaders,
-          },
-        }
-      );
-    }
-
-    // Check if email already has a pending or approved request
-    const { data: existingRequest } = await supabase
+    const { data: existing, error: existingError } = await db
       .from("cv_requests")
-      .select("id, status")
+      .select("id")
       .eq("email", email)
       .in("status", ["pending", "approved"])
       .limit(1)
       .maybeSingle();
+    if (existingError) throw new Error(`cv_requests lookup failed: ${existingError.message}`);
+    if (existing) return ok(req, { alreadyRequested: true });
 
-    if (existingRequest) {
-      const message = existingRequest.status === "approved" 
-        ? "Your request is already approved. Check your status at /cv-status"
-        : "You already have a pending request. Please wait for review.";
-      
-      return new Response(
-        JSON.stringify({ success: true, message, alreadyExists: true }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
-    // Insert CV request
-    const { data: cvRequest, error: insertError } = await supabase
+    const { data: created, error: insertError } = await db
       .from("cv_requests")
       .insert({ email, name })
-      .select()
+      .select("id")
       .single();
+    if (insertError) throw new Error(`cv_requests insert failed: ${insertError.message}`);
 
-    if (insertError) {
-      console.error("Error inserting CV request:", insertError);
-      throw insertError;
-    }
+    const displayName = name ? escapeHtml(name) : "(no name given)";
+    const notify = await sendEmail(db, {
+      functionName: "request-cv",
+      idempotencyKey: `cv-request-notify-${created.id}`,
+      message: {
+        to: ADMIN_NOTIFY_EMAIL,
+        replyTo: email,
+        subject: singleLine(`New CV request — ${name ?? email}`),
+        html: emailLayout(
+          "New CV download request",
+          `<p><strong>From:</strong> ${displayName} &lt;${escapeHtml(email)}&gt;</p>
+           <p>Approve or reject it in the <a href="${SITE_URL}/admin">admin panel</a>.
+           On approval the requester receives a personal download link.</p>`,
+        ),
+      },
+    });
+    // The request is saved either way; a failed notification is visible in Email Metrics.
+    if (!notify.ok) logError("request-cv.notify", notify.code, { requestId: created.id });
 
-    console.log("CV request created successfully");
-
-    // Send admin notification email via shared retry helper (non-blocking)
-    try {
-      const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #1a1a1a; border-bottom: 2px solid #c8a870; padding-bottom: 10px;">New CV Download Request</h2>
-          <p><strong>From:</strong> ${name || "(no name)"} &lt;${email}&gt;</p>
-          <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
-          <p>Review and approve/deny in the Admin panel at <a href="https://mulalic.ai-studio.wiki/admin">/admin</a>.</p>
-        </div>
-      `;
-      const result = await sendEmailWithRetry({
-        functionName: "request-cv",
-        recipientEmail: email,
-        idempotencyKey: `cv-request-notify-${cvRequest.id}`,
-        payload: {
-          from: "CV Request <onboarding@resend.dev>",
-          to: ["mulalic71@gmail.com"],
-          reply_to: email,
-          subject: `[New CV Request — ${email}]`,
-          html,
-        },
-      });
-      if (!result.ok) {
-        console.error("Admin notification failed:", result.errorCode, result.errorMessage);
-      }
-    } catch (notifyErr: any) {
-      console.error("Admin notification error:", notifyErr.message);
-    }
-
-    return new Response(
-      JSON.stringify({ success: true, message: "Request submitted successfully", token: cvRequest.token }),
-      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-    );
-  } catch (error: any) {
-    console.error("Error in request-cv function:", error.message);
-    return new Response(
-      JSON.stringify({ error: "An error occurred. Please try again." }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-    );
+    return ok(req, { alreadyRequested: false });
+  } catch (error) {
+    logError("request-cv", error);
+    return fail(req, 500, "Something went wrong. Please try again in a few minutes.", "INTERNAL_ERROR");
   }
-};
-
-serve(handler);
+});

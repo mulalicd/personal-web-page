@@ -1,54 +1,17 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { Anchor, Heart, Users } from "lucide-react";
+import { Anchor, Heart, Users, type LucideIcon } from "lucide-react";
+import { profile } from "@/content/profile";
+import type { VolunteeringIcon } from "@/types";
 
-const volunteering = [
-  {
-    title: "Business Mentor / CMAS & SSI Dive Master Instructor",
-    organization: "KVS Scuba",
-    period: "Apr 2019 – Present",
-    icon: Anchor,
-    description: "Mentored 500+ diving enthusiasts in sports, commercial, and technical diving with 100% certification success rate.",
-    achievements: [
-      "Advocated for water resource preservation through 80+ community events, reaching 7,000+ participants",
-      "Developed therapeutic diving programs benefitting 50+ individuals with disabilities",
-      "Led collaborative workshops with a team of 10 instructors, improving training quality scores by 20%",
-    ],
-    active: true,
-  },
-  {
-    title: "Member of the Research Unit",
-    organization: "Sharklab Malta",
-    period: "2016 – Present",
-    icon: Heart,
-    description: "Contributing to marine conservation and research efforts.",
-    achievements: [
-      "Conducted species monitoring and public outreach programs",
-      "Supporting conservation efforts that reduced harmful fishing practices",
-    ],
-    active: true,
-  },
-  {
-    title: "President / Co-Founder",
-    organization: "ELAN NGO – Youth-Sport-Environment",
-    period: "Sep 2010 – Jun 2018",
-    icon: Users,
-    description: "Co-founded and led organization promoting youth sports and environmental awareness.",
-    achievements: [
-      "Increased youth participation in sports by 40% and organized 15+ environmental events annually",
-      "Designed engagement programs raising community involvement by 30%",
-      "Secured €30,000 in funding for sustainability projects",
-      "Partnered with local governments and schools benefitting 500+ participants annually",
-    ],
-  },
-];
+const VOLUNTEERING_ICONS: Record<VolunteeringIcon, LucideIcon> = {
+  anchor: Anchor,
+  heart: Heart,
+  users: Users,
+};
 
-const interests = [
-  { label: "Licensed Diving Instructor", detail: "CMAS 1* and SSI Dive Master Instructor" },
-  { label: "Business Consulting", detail: "VISASQ / COLEMAN" },
-];
-
+/** Volunteering, community leadership and interests. */
 export function VolunteeringSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -94,11 +57,11 @@ export function VolunteeringSection() {
 
           {/* Volunteering Cards */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {volunteering.map((item, index) => {
-              const Icon = item.icon;
+            {profile.volunteering.map((item, index) => {
+              const Icon = VOLUNTEERING_ICONS[item.icon];
               return (
                 <motion.div
-                  key={index}
+                  key={item.organization}
                   initial={{ opacity: 0, y: 30 }}
                   animate={isInView ? { opacity: 1, y: 0 } : {}}
                   transition={{ delay: 0.4 + index * 0.1 }}
@@ -127,8 +90,8 @@ export function VolunteeringSection() {
                   <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
 
                   <ul className="space-y-2">
-                    {item.achievements.slice(0, 2).map((achievement, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    {item.achievements.map((achievement) => (
+                      <li key={achievement} className="flex items-start gap-2 text-xs text-muted-foreground">
                         <div className="w-1 h-1 rounded-full bg-primary mt-1.5 flex-shrink-0" />
                         {achievement}
                       </li>
@@ -148,9 +111,9 @@ export function VolunteeringSection() {
           >
             <h3 className="text-lg font-semibold text-foreground mb-4 text-center">Interests & Certifications</h3>
             <div className="flex flex-wrap justify-center gap-4">
-              {interests.map((interest, index) => (
-                <div key={index} className="flex items-center gap-2 px-4 py-2 bg-card rounded-full border border-border">
-                  <span className="font-medium text-foreground">{interest.label}</span>
+              {profile.interests.map((interest) => (
+                <div key={interest.name} className="flex items-center gap-2 px-4 py-2 bg-card rounded-full border border-border">
+                  <span className="font-medium text-foreground">{interest.name}</span>
                   <span className="text-muted-foreground text-sm">• {interest.detail}</span>
                 </div>
               ))}

@@ -1,9 +1,9 @@
 {
-  "_usage": "Copy to <project>/.claude/project-guard.config.json and edit per project. Each 'forbidden' entry: 'pattern' (JS regex source), optional 'flags', 'reason' (shown when the guard blocks). Without this file the guard is inactive. 'extensions' and 'exclude' are optional and have sensible defaults.",
+  "_usage": "Commander E-13 project guard. Each 'forbidden' entry: 'pattern' (JS regex source), optional 'flags', 'reason'.",
   "forbidden": [
     {
       "pattern": "AIzaSy[A-Za-z0-9_-]{10,}",
-      "reason": "Google API key material must never appear in a tracked file"
+      "reason": "Google / Gemini API key material must never appear in a tracked file (use Supabase secrets)"
     },
     {
       "pattern": "-----BEGIN (RSA |EC )?PRIVATE KEY-----",
@@ -12,6 +12,22 @@
     {
       "pattern": "eyJhbGciOi",
       "reason": "JWT-looking token must never appear in a tracked file"
+    },
+    {
+      "pattern": "sb_secret_[A-Za-z0-9_-]{8,}",
+      "reason": "Supabase secret key must never appear in a tracked file"
+    },
+    {
+      "pattern": "\\bre_[A-Za-z0-9]{8,}_[A-Za-z0-9]{8,}",
+      "reason": "Resend API key must never appear in a tracked file (use Supabase secrets)"
+    },
+    {
+      "pattern": "(connector-gateway|ai\\.gateway)\\.lovable\\.dev",
+      "reason": "Lovable gateways were removed (PDL-002) — call Resend / the AIProvider directly"
+    },
+    {
+      "pattern": "onboarding@resend\\.dev",
+      "reason": "Resend test sender only delivers to the account owner — use the EMAIL_FROM secret (verified domain)"
     }
   ]
 }

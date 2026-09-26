@@ -1,7 +1,7 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, XCircle, Clock, RefreshCw, Shield, Mail, User, Calendar, Video, MessageSquare, LogOut, Loader2, ScrollText, BarChart3 } from "lucide-react";
+import { CheckCircle, Clock, RefreshCw, Shield, Mail, User, Calendar, Video, MessageSquare, LogOut, Loader2, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,13 +10,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { CVRequestsViewer } from "@/components/CVRequestsViewer";
+import { callFunction } from "@/lib/api";
+import type { Json } from "@/integrations/supabase/types";
 
 // Heavy viewers (charts / large tables) — only fetched when their tab is opened.
 const AuditLogViewer = lazy(() =>
   import("@/components/AuditLogViewer").then((m) => ({ default: m.AuditLogViewer })),
-);
-const AnalyticsViewer = lazy(() =>
-  import("@/components/AnalyticsViewer").then((m) => ({ default: m.AnalyticsViewer })),
 );
 const EmailMetricsViewer = lazy(() =>
   import("@/components/EmailMetricsViewer").then((m) => ({ default: m.EmailMetricsViewer })),
@@ -30,7 +29,6 @@ const TabFallback = () => (
 
 interface CVRequest {
   id: string;
-  token: string;
   email: string;
   name: string | null;
   status: string;
@@ -72,49 +70,47 @@ export default function Admin() {
     }
   }, [user, isAdmin, authLoading, navigate]);
 
-  const fetchRequests = async () => {
-    if (!isAdmin) return;
-    
+  const fetchRequests = useCallback(async () => {
+    if (!isAdmin || !supabase) return;
+
     setLoading(true);
     try {
       const [cvResult, consultResult] = await Promise.all([
-        supabase.from("cv_requests").select("*").order("created_at", { ascending: false }),
-        supabase.from("consultation_requests").select("*").order("created_at", { ascending: false })
+        supabase.from("cv_requests").select("id, email, name, status, created_at, processed_at").order("created_at", { ascending: false }),
+        supabase.from("consultation_requests").select("*").order("created_at", { ascending: false }),
       ]);
 
       if (cvResult.error) throw cvResult.error;
       if (consultResult.error) throw consultResult.error;
-      
-      setCvRequests(cvResult.data || []);
-      setConsultations(consultResult.data || []);
-    } catch (error: any) {
-      console.error("Error fetching requests:", error);
+
+      setCvRequests(cvResult.data ?? []);
+      setConsultations(consultResult.data ?? []);
+    } catch (error) {
+      console.error("[admin] fetching requests failed:", error);
       toast({
-        title: "Error",
-        description: "Failed to fetch requests",
+        title: "Could not load requests",
+        description: "Please refresh in a moment.",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAdmin]);
 
   useEffect(() => {
-    if (isAdmin) {
-      fetchRequests();
-    }
-  }, [isAdmin]);
+    void fetchRequests();
+  }, [fetchRequests]);
 
   const logAudit = async (
     action: string,
     target_table: string,
     target_id: string | null,
-    old_value: any,
-    new_value: any
+    old_value: Json,
+    new_value: Json
   ) => {
-    if (!user) return;
+    if (!user || !supabase) return;
     try {
-      await supabase.from("admin_audit_log").insert({
+      const { error } = await supabase.from("admin_audit_log").insert({
         admin_user_id: user.id,
         action,
         target_table,
@@ -123,83 +119,43 @@ export default function Admin() {
         new_value,
         user_agent: navigator.userAgent,
       });
+      if (error) console.error("[admin] audit log write failed:", error.message);
     } catch (err) {
       console.error("Failed to write audit log:", err);
     }
   };
 
-  const handleCVAction = async (token: string, action: "approve" | "reject") => {
-    setProcessing(token);
-    try {
-      const request = cvRequests.find(r => r.token === token);
-      const newStatus = action === "approve" ? "approved" : "rejected";
+  /** Approve/reject a CV request server-side (status + audit + email to the requester). */
+  const handleCVAction = async (requestId: string, action: "approve" | "reject") => {
+    setProcessing(requestId);
+    const result = await callFunction<{ status: string; emailSent: boolean }>(
+      "process-cv-request",
+      { requestId, action },
+      { authenticated: true },
+    );
+    setProcessing(null);
 
-      const { error } = await supabase
-        .from("cv_requests")
-        .update({
-          status: newStatus,
-          processed_at: new Date().toISOString()
-        })
-        .eq("token", token);
-
-      if (error) throw error;
-
-      // Audit log
-      await logAudit(
-        action === "approve" ? "cv_request.approved" : "cv_request.rejected",
-        "cv_requests",
-        request?.id ?? null,
-        { status: request?.status, email: request?.email },
-        { status: newStatus, email: request?.email }
-      );
-
-      // Send email notification
-      try {
-        await supabase.functions.invoke("notify-cv-approval", {
-          body: {
-            email: request?.email,
-            name: request?.name,
-            action,
-            token,
-          },
-        });
-      } catch (emailError: any) {
-        console.error("Failed to send notification email:", emailError);
-        await logAudit(
-          "cv_request.notify_failed",
-          "cv_requests",
-          request?.id ?? null,
-          null,
-          { error: emailError?.message ?? String(emailError) }
-        );
-      }
-
-      toast({
-        title: action === "approve" ? "Approved!" : "Rejected",
-        description: `CV request has been ${action === "approve" ? "approved" : "rejected"}. Notification email sent.`,
-      });
-
-      fetchRequests();
-    } catch (error: any) {
-      console.error("Error processing request:", error);
-      await logAudit(
-        "cv_request.action_failed",
-        "cv_requests",
-        null,
-        { token, action },
-        { error: error?.message ?? String(error) }
-      );
-      toast({
-        title: "Error",
-        description: "Failed to process request",
-        variant: "destructive",
-      });
-    } finally {
-      setProcessing(null);
+    if (!result.success) {
+      toast({ title: "Action failed", description: result.error, variant: "destructive" });
+      void fetchRequests();
+      return;
     }
+
+    const verb = action === "approve" ? "approved" : "rejected";
+    toast(
+      result.data.emailSent
+        ? { title: `Request ${verb}`, description: "The requester has been notified by email." }
+        : {
+            title: `Request ${verb} — email NOT sent`,
+            description: "Check the Email Metrics tab and the email settings, then contact the requester manually.",
+            variant: "destructive",
+          },
+    );
+    void fetchRequests();
   };
 
   const handleConsultationAction = async (id: string, action: "confirm" | "complete") => {
+    if (!supabase) return;
     setProcessing(id);
     try {
       const prev = consultations.find(c => c.id === id);
@@ -227,15 +183,15 @@ export default function Admin() {
         description: `Consultation has been marked as ${action === "confirm" ? "confirmed" : "completed"}.`,
       });
 
-      fetchRequests();
-    } catch (error: any) {
+      void fetchRequests();
+    } catch (error) {
       console.error("Error processing consultation:", error);
       await logAudit(
         "consultation.action_failed",
         "consultation_requests",
         id,
         { action },
-        { error: error?.message ?? String(error) }
+        { error: error instanceof Error ? error.message : String(error) }
       );
       toast({
         title: "Error",
@@ -244,19 +200,6 @@ export default function Admin() {
       });
     } finally {
       setProcessing(null);
-    }
-  };
-
-  const getCVStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
-      case "approved":
-        return <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30"><CheckCircle className="w-3 h-3 mr-1" /> Approved</Badge>;
-      case "rejected":
-        return <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/30"><XCircle className="w-3 h-3 mr-1" /> Rejected</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
@@ -274,7 +217,6 @@ export default function Admin() {
   };
 
   const pendingCVRequests = cvRequests.filter(r => r.status === "pending");
-  const processedCVRequests = cvRequests.filter(r => r.status !== "pending");
   const pendingConsultations = consultations.filter(r => r.status === "pending");
   const activeConsultations = consultations.filter(r => r.status === "confirmed");
   const completedConsultations = consultations.filter(r => r.status === "completed");
@@ -314,11 +256,11 @@ export default function Admin() {
               <span className="text-sm text-muted-foreground hidden md:inline">
                 {user.email}
               </span>
-              <Button variant="outline" size="sm" onClick={fetchRequests} disabled={loading}>
+              <Button variant="outline" size="sm" onClick={() => void fetchRequests()} disabled={loading}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
                 Refresh
               </Button>
-              <Button variant="ghost" size="sm" onClick={signOut}>
+              <Button variant="ghost" size="sm" onClick={() => void signOut()} aria-label="Sign out">
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
@@ -327,7 +269,7 @@ export default function Admin() {
         </motion.div>
 
         <Tabs defaultValue="cv" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-6">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6">
             <TabsTrigger value="cv" className="flex items-center gap-2">
               <Mail className="w-4 h-4" />
               CV Requests ({pendingCVRequests.length})
@@ -335,10 +277,6 @@ export default function Admin() {
             <TabsTrigger value="consultations" className="flex items-center gap-2">
               <Video className="w-4 h-4" />
               Consultations ({pendingConsultations.length})
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Analytics
             </TabsTrigger>
             <TabsTrigger value="emails" className="flex items-center gap-2">
               <Mail className="w-4 h-4" />
@@ -519,13 +457,6 @@ export default function Admin() {
                 </div>
               )}
             </section>
-          </TabsContent>
-
-          {/* Analytics Tab */}
-          <TabsContent value="analytics">
-            <Suspense fallback={<TabFallback />}>
-              <AnalyticsViewer />
-            </Suspense>
           </TabsContent>
 
           {/* Email Metrics Tab */}

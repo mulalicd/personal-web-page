@@ -1,5 +1,5 @@
 # SPRINT 01 — Foundation: working backend, zero known errors, exact content
-Status: **PROPOSED — awaiting Director approval**
+Status: **IMPLEMENTED — awaiting Director setup steps and approval to deploy** (approved 2026-09-26)
 Created: 2026-09-26 · Commander v1.5.4 · FULL mode
 
 Goal: after this sprint every existing feature works on the Director's own
@@ -117,3 +117,54 @@ admin tab (more work, more data to protect).
 Full `DONE_CHECKLIST.md` run; every item above verified in the browser on the
 production URL (desktop + mobile), console clean, `npm run build` and
 `tsc --noEmit` clean, lessons file consolidated, handoff note written.
+
+
+---
+
+## PROGRESS (2026-09-26)
+
+| # | Item | Status |
+|---|---|---|
+| 1.1–1.3 | Schema, no auto-admin, RLS deny-by-default | ✅ applied to qixpdeqjrkvfurqhzvtc (2 migrations) |
+| 1.2 | Admin account + sign-up disabled | ⏳ Director: dashboard steps (see handoff) |
+| 1.4–1.5 | Resend email, Gemini chatbot, CORS allowlist, rate limits | ✅ code deployed · ⏳ secrets by Director |
+| 1.6 | Edge Functions deployed | ✅ 7 functions ACTIVE |
+| 1.6 | Vercel env vars | ⏳ Director (Vercel account `mulalicds-projects` is not reachable by the ACA) |
+| 2.x | CV flow (private bucket, token link, email to requester) | ✅ |
+| 3.x | Functional bug fixes | ✅ verified in the browser (except animations — pane freezes rAF) |
+| 4.x | Content corrections | ✅ all facts in `src/content/profile.ts` |
+| 5.1–5.5 | Strict TS, lint, images, chunks, repo hygiene | ✅ |
+| 6 | Vercel Web Analytics | ✅ code · ⏳ Director enables it in the Vercel dashboard |
+
+Deviation from plan: `5.4 first screen visible immediately` — the "5-second
+empty hero" was a test-browser artifact (frozen requestAnimationFrame), not a
+site bug; no change needed beyond the bundle/image work.
+
+---
+
+## HANDOFF NOTE — Sprint 01
+Completed: new Supabase backend (schema, 7 Edge Functions, private CV bucket),
+all audit bugs, all content corrections, strict TypeScript, WebP images,
+Vercel Analytics, Commander automation with project-specific guard patterns.
+Not completed (needs the Director): admin account + sign-up switch, Gemini and
+Resend secrets (+ Resend domain verification), Vercel env vars + Analytics
+toggle, approval to push to `main` (= production deploy on Vercel).
+Open risks: until `RESEND_API_KEY`/`EMAIL_FROM` exist, contact and CV emails
+fail honestly with a visitor-friendly message; until `GEMINI_API_KEY_1` exists
+the chatbot answers "temporarily unavailable". `gemini-2.5-flash` (DL-005) must
+be confirmed live once the key is set. Git history of this public repo still
+contains the old CV PDF and the removed zip (history rewrite needs separate
+approval, M-23).
+Technical debt: books share one Amazon author link and one PayPal link (no
+per-book links known); 2 lint warnings (hook + provider in one file, harmless).
+Next sprint: Sprint 02 — "Executive Presence" hero (three.js).
+
+COMMANDER COMPLIANCE — Sprint 01
+──────────────────────────────────
+Rules followed without reminder:        21/23
+Rules violated, caught by ACA:          2 (python-heredoc escape bug in ChatBot.tsx;
+                                           own guard pattern matched DECISION_LOG text)
+Rules violated, caught by Director:     1 (M-4/M-10: claimed "4th book missing"
+                                           without reading AISBPSection)
+Rules that slowed work or felt wrong:   none
+New rules suggested by this sprint:     see corrections/SPRINT_01_LESSONS.md

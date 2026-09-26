@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ConsultationDialog } from "@/components/ConsultationDialog";
 import { DMLogo } from "@/components/DMLogo";
 import { useTheme } from "@/hooks/useTheme";
-import { track } from "@/lib/analytics";
+import { NAV_SOLID_SCROLL_OFFSET } from "@/constants";
 
 const navItems = [
   { label: "Home", href: "#home" },
@@ -27,9 +27,9 @@ export function Navigation() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > NAV_SOLID_SCROLL_OFFSET);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -77,7 +77,7 @@ export function Navigation() {
       <nav className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <a href="#home" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <a href="#home" aria-label="Davor Mulalić — back to top" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <DMLogo size={36} />
           </a>
 
@@ -111,14 +111,15 @@ export function Navigation() {
             >
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            <ConsultationDialog
-              trigger={<Button size="sm">Book Consultation</Button>}
-            />
+            <ConsultationDialog source="navigation" trigger={<Button size="sm">Book Consultation</Button>} />
           </div>
 
           {/* Mobile Menu Button */}
           <button
+            type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileMenuOpen}
             className="lg:hidden p-2 text-foreground"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -161,6 +162,7 @@ export function Navigation() {
                   {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                 </button>
                 <ConsultationDialog
+                  source="navigation_mobile"
                   trigger={<Button size="sm" className="flex-1">Book Consultation</Button>}
                 />
               </div>

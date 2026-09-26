@@ -10,7 +10,6 @@ interface TooltipState {
 export function HeroGlobe() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [activeCount, setActiveCount] = useState(0);
   const [tooltip, setTooltip] = useState<TooltipState>({ visible: false, x: 0, y: 0, name: "" });
 
   // Store projected nodes for hit testing
@@ -129,7 +128,7 @@ export function HeroGlobe() {
     });
 
     let activeSet = new Set<number>();
-    let pulsePhase: number[] = new Array(cities.length).fill(0);
+    const pulsePhase: number[] = new Array(cities.length).fill(0);
 
     const refreshActive = () => {
       const count = 20 + Math.floor(Math.random() * 31);
@@ -139,7 +138,6 @@ export function HeroGlobe() {
         [indices[i], indices[j]] = [indices[j], indices[i]];
       }
       activeSet = new Set(indices.slice(0, count));
-      setActiveCount(count);
     };
     refreshActive();
     const refreshInterval = setInterval(refreshActive, 4000);
@@ -311,11 +309,6 @@ export function HeroGlobe() {
           {tooltip.name}
         </div>
       )}
-      {/* Active companies counter */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 bg-card/70 backdrop-blur-sm rounded-full border border-border/40 text-[10px] text-muted-foreground">
-        <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
-        <span>{activeCount} active worldwide</span>
-      </div>
     </div>
   );
 }

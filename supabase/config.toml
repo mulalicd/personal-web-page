@@ -1,4 +1,4 @@
-project_id = "zihohzstvbdobxahjfsy"
+project_id = "qixpdeqjrkvfurqhzvtc"
 
 [api]
 enabled = true
@@ -9,7 +9,7 @@ max_rows = 1000
 
 [db]
 port = 54322
-major_version = 15
+major_version = 17
 
 [studio]
 enabled = true
@@ -18,22 +18,39 @@ api_url = "http://127.0.0.1"
 
 [auth]
 enabled = true
-site_url = "http://127.0.0.1:3000"
-
-[functions.request-cv]
-verify_jwt = false
-
-[functions.check-cv-status]
-verify_jwt = false
+site_url = "https://mulalic.ai-studio.wiki"
+# Password-reset links may only return to the site itself.
+additional_redirect_urls = ["https://mulalic.ai-studio.wiki/reset-password", "http://localhost:8080/reset-password"]
+# Public self-registration must be OFF (CONSTITUTION P-4) — set in the dashboard
+# (Authentication → Sign In / Providers → "Allow new users to sign up").
+# Do NOT run `supabase config push` with this minimal file: it would also reset
+# MFA and email-confirmation settings to local defaults (found 2026-09-26).
+enable_signup = false
 
 [functions.chat-assistant]
 verify_jwt = false
+import_map = "./functions/deno.json"
+
+[functions.request-cv]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+[functions.check-cv-status]
+verify_jwt = false
+import_map = "./functions/deno.json"
 
 [functions.send-contact-email]
 verify_jwt = false
+import_map = "./functions/deno.json"
 
-[functions.notify-cv-approval]
+[functions.submit-consultation]
 verify_jwt = false
+import_map = "./functions/deno.json"
+
+[functions.process-cv-request]
+verify_jwt = false
+import_map = "./functions/deno.json"
 
 [functions.resend-webhook]
 verify_jwt = false
+import_map = "./functions/deno.json"

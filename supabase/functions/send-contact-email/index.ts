@@ -1,94 +1,64 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { sendEmailWithRetry } from "../_shared/email-retry.ts";
+/**
+ * POST /functions/v1/send-contact-email
+ * Role required: none (public contact form)
+ * Body: contactFormSchema — { name, email, organization?, interest?, message, idempotencyKey? }
+ * Response: { success: true, data: { delivered: true } }
+ * Errors: 400 (validation), 429 (rate limit), 502 (email provider failed), 500 (unexpected)
+ */
+import { contactFormSchema } from "../../../src/lib/validation/schemas.ts";
+import { ADMIN_NOTIFY_EMAIL, RATE_LIMITS } from "../_shared/constants.ts";
+import { sendEmail } from "../_shared/email.ts";
+import { emailLayout, escapeHtml, singleLine } from "../_shared/html.ts";
+import { clientFingerprint, fail, handlePreflight, logError, ok, rateLimited } from "../_shared/http.ts";
+import { checkRateLimit } from "../_shared/rate-limit.ts";
+import { serviceClient } from "../_shared/supabase.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-idempotency-key",
-};
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function sanitize(input: string | undefined | null, maxLength: number): string {
-  if (!input) return "";
-  return input.trim().slice(0, maxLength).replace(/[<>]/g, "");
-}
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+Deno.serve(async (req) => {
+  const preflight = handlePreflight(req);
+  if (preflight) return preflight;
+  if (req.method !== "POST") return fail(req, 405, "Method not allowed.", "METHOD_NOT_ALLOWED");
 
   try {
-    const body = await req.json();
-    const name = sanitize(body.name, 100);
-    const email = sanitize(body.email, 255)?.toLowerCase();
-    const organization = sanitize(body.organization, 200);
-    const interest = sanitize(body.interest, 100);
-    const message = sanitize(body.message, 2000);
-    const idempotencyKey =
-      sanitize(body.idempotencyKey, 100) ||
-      req.headers.get("x-idempotency-key") ||
-      undefined;
-
-    if (!name || !email || !emailRegex.test(email) || !message) {
-      return new Response(
-        JSON.stringify({ error: "Name, valid email, and message are required" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
-      );
+    const parsed = contactFormSchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) {
+      return fail(req, 400, parsed.error.errors[0]?.message ?? "Please check your details.", "VALIDATION_ERROR");
     }
+    const { name, email, organization, interest, message, idempotencyKey } = parsed.data;
 
-    const htmlBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #1a1a1a; border-bottom: 2px solid #c8a870; padding-bottom: 10px;">New Contact Form Submission</h2>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-          <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Name:</td><td style="padding: 8px 0;">${name}</td></tr>
-          <tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Email:</td><td style="padding: 8px 0;"><a href="mailto:${email}">${email}</a></td></tr>
-          ${organization ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Organization:</td><td style="padding: 8px 0;">${organization}</td></tr>` : ""}
-          ${interest ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #555;">Interest:</td><td style="padding: 8px 0;">${interest}</td></tr>` : ""}
-        </table>
-        <div style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
-          <h3 style="margin: 0 0 10px; color: #555;">Message:</h3>
-          <p style="margin: 0; white-space: pre-wrap;">${message}</p>
-        </div>
-      </div>
-    `;
+    const db = serviceClient();
+    const limit = await checkRateLimit(db, await clientFingerprint(req), "contact", RATE_LIMITS.contact);
+    if (!limit.allowed) return rateLimited(req, limit.retryAfter);
 
-    const result = await sendEmailWithRetry({
+    const rows = [
+      ["Name", escapeHtml(name)],
+      ["Email", `<a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>`],
+      ...(organization ? [["Organization", escapeHtml(organization)]] : []),
+      ...(interest ? [["Interest", escapeHtml(interest)]] : []),
+    ]
+      .map(([label, value]) => `<tr><td style="padding:6px 12px 6px 0;font-weight:bold;color:#555;">${label}</td><td>${value}</td></tr>`)
+      .join("");
+
+    const result = await sendEmail(db, {
       functionName: "send-contact-email",
-      recipientEmail: email,
-      idempotencyKey,
-      payload: {
-        from: "Davor Mulalić Website <onboarding@resend.dev>",
-        to: ["mulalic71@gmail.com"],
-        reply_to: email,
-        subject: `[Website Contact] ${interest || "General Inquiry"} from ${name}`,
-        html: htmlBody,
+      idempotencyKey: idempotencyKey ? `contact-${idempotencyKey}` : undefined,
+      message: {
+        to: ADMIN_NOTIFY_EMAIL,
+        replyTo: email,
+        subject: singleLine(`[Website Contact] ${interest ?? "General Inquiry"} from ${name}`),
+        html: emailLayout(
+          "New contact form message",
+          `<table style="border-collapse:collapse;">${rows}</table>
+           <div style="margin-top:18px;padding:14px;background:#f5f5f5;border-radius:8px;white-space:pre-wrap;">${escapeHtml(message)}</div>`,
+        ),
       },
     });
 
     if (!result.ok) {
-      console.error("Contact send failed:", result.errorCode, result.errorMessage);
-      return new Response(
-        JSON.stringify({ error: "Failed to send message. Please try again." }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } },
-      );
+      return fail(req, 502, "Your message could not be sent right now. Please try again later or email directly.", "EMAIL_FAILED");
     }
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        attempts: result.attempts,
-        latency_ms: result.totalMs,
-        deduped: !!result.deduped,
-      }),
-      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
-    );
-  } catch (error: any) {
-    console.error("Error in send-contact-email:", error.message);
-    return new Response(
-      JSON.stringify({ error: "Failed to send message. Please try again." }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } },
-    );
+    return ok(req, { delivered: true });
+  } catch (error) {
+    logError("send-contact-email", error);
+    return fail(req, 500, "Something went wrong. Please try again in a few minutes.", "INTERNAL_ERROR");
   }
 });

@@ -19,6 +19,7 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
+    if (!supabase) return;
     // Supabase puts the recovery session in the URL hash and creates a session automatically.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
@@ -35,11 +36,13 @@ export default function ResetPassword() {
     if (password.length < 8) return setError("Password must be at least 8 characters.");
     if (password !== confirm) return setError("Passwords do not match.");
 
+    if (!supabase) return setError("Password reset is temporarily unavailable.");
     setLoading(true);
     try {
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) {
-        setError(updateError.message);
+        console.error("[auth] password update failed:", updateError.message);
+        setError("The password could not be updated. Please request a new reset link.");
         return;
       }
       setSuccess(true);

@@ -87,6 +87,7 @@ export function EmailMetricsViewer() {
   const [search, setSearch] = useState("");
 
   const fetchMetrics = async () => {
+    if (!supabase) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("email_send_metrics")

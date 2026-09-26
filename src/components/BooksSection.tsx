@@ -4,38 +4,23 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { ExternalLink, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import bookAiBusiness from "@/assets/book-ai-business-excellence.png";
-import bookAiTeacher from "@/assets/book-ai-teacher-companion.jpg";
-import bookPromptEngineering from "@/assets/book-prompt-engineering-manual.png";
+import bookAiBusiness from "@/assets/book-ai-business-excellence.webp";
+import bookAiTeacher from "@/assets/book-ai-teacher-companion.webp";
+import bookPromptEngineering from "@/assets/book-prompt-engineering-manual.webp";
+import bookAiSolvedProblems from "@/assets/book-ai-solved-problems.webp";
+import { AMAZON_AUTHOR_URL, BOOKS_PAYPAL_URL } from "@/constants";
+import { profile } from "@/content/profile";
+import type { BookEntry } from "@/types";
 
 
-const amazonLink = "https://www.amazon.com/s?i=digital-text&rh=p_27%3ADavor%2BMulali%25C4%2587&s=relevancerank&text=Davor+Mulali%C4%87&ref=dp_byline_sr_ebooks_1";
-const paypalLink = "https://www.paypal.com/ncp/payment/FKMN5XAS97TEY";
+const BOOK_COVERS: Record<BookEntry["coverKey"], string> = {
+  aiBusinessExcellence: bookAiBusiness,
+  aiTeacherCompanion: bookAiTeacher,
+  promptEngineering: bookPromptEngineering,
+  aiSolvedBusinessProblems: bookAiSolvedProblems,
+};
 
-const books = [
-  {
-    title: "AI for Business and Personal Excellence",
-    subtitle: "Strategies for Growth and Productivity",
-    description: "Applying AI strategies for business growth and personal productivity enhancement",
-    topics: ["Business automation", "Personal productivity", "AI strategy"],
-    cover: bookAiBusiness,
-  },
-  {
-    title: "The AI Teacher's Companion",
-    subtitle: "Integrating Artificial Intelligence in Your Classroom",
-    description: "Practical guide for educators to effectively integrate AI tools into daily teaching practice",
-    topics: ["AI tools for teachers", "Lesson planning with AI", "Practical examples"],
-    cover: bookAiTeacher,
-  },
-  {
-    title: "Mastering Prompt Engineering",
-    subtitle: "A Practical Manual for Advanced Non-Coders",
-    description: "Comprehensive guide to prompt engineering for educators and professionals without coding background",
-    topics: ["Prompting techniques", "Educational applications", "Best practices"],
-    cover: bookPromptEngineering,
-  },
-];
-
+/** Published books (the 4th, "AI Solved Business Problems", is presented in the AISBP section). */
 export function BooksSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -79,9 +64,9 @@ export function BooksSection() {
 
           {/* Books Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {books.map((book, index) => (
+            {profile.books.map((book, index) => (
               <motion.div
-                key={index}
+                key={book.title}
                 initial={{ opacity: 0, y: 30 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.4 + index * 0.15 }}
@@ -90,7 +75,7 @@ export function BooksSection() {
                 {/* Book Cover Image */}
                 <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
                   <img
-                    src={book.cover}
+                    src={BOOK_COVERS[book.coverKey]}
                     alt={`Book cover: ${book.title}`}
                     className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
@@ -109,9 +94,9 @@ export function BooksSection() {
 
                   {/* Topics */}
                   <div className="flex flex-wrap gap-1.5 mb-3">
-                    {book.topics.slice(0, 2).map((topic, i) => (
+                    {book.topics.slice(0, 2).map((topic) => (
                       <span
-                        key={i}
+                        key={topic}
                         className="px-2 py-0.5 bg-secondary text-secondary-foreground text-xs rounded-md"
                       >
                         {topic}
@@ -121,13 +106,13 @@ export function BooksSection() {
 
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" className="flex-1" asChild>
-                      <a href={amazonLink} target="_blank" rel="noopener noreferrer">
+                      <a href={AMAZON_AUTHOR_URL} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-3 h-3" />
                         Amazon
                       </a>
                     </Button>
                     <Button variant="default" size="sm" className="flex-1" asChild>
-                      <a href={paypalLink} target="_blank" rel="noopener noreferrer">
+                      <a href={BOOKS_PAYPAL_URL} target="_blank" rel="noopener noreferrer">
                         <ShoppingCart className="w-3 h-3" />
                         Buy
                       </a>

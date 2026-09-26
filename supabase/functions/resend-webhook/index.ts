@@ -3,8 +3,8 @@
 // provider_message_id (data.email_id from Resend) or — preferred — via the
 // `idempotency_key` tag we attach when sending. Optional signature
 // verification when RESEND_WEBHOOK_SECRET is set.
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { logError } from "../_shared/http.ts";
+import { serviceClient } from "../_shared/supabase.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -58,7 +58,7 @@ async function verifySvixSignature(
   return provided.some((sig) => sig === expected);
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
@@ -122,16 +122,14 @@ serve(async (req) => {
       });
     }
 
-    const sb = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+    const sb = serviceClient();
 
     // Find the metric row.
     let query = sb.from("email_send_metrics").select("id, delivery_events");
     if (idempotencyKey) query = query.eq("idempotency_key", idempotencyKey);
     else if (emailId) query = query.eq("provider_message_id", emailId);
-    const { data: row } = await query.maybeSingle();
+    const { data: row, error: rowError } = await query.maybeSingle();
+    if (rowError) throw new Error(`email_send_metrics lookup failed: ${rowError.message}`);
 
     if (!row) {
       console.warn("resend-webhook: no matching row", { type, emailId, idempotencyKey });
@@ -148,7 +146,7 @@ serve(async (req) => {
       at: event.created_at ?? new Date().toISOString(),
     });
 
-    await sb
+    const { error: updateError } = await sb
       .from("email_send_metrics")
       .update({
         delivery_status: status,
@@ -157,14 +155,15 @@ serve(async (req) => {
         ...(emailId ? { provider_message_id: emailId } : {}),
       })
       .eq("id", row.id);
+    if (updateError) throw new Error(`email_send_metrics update failed: ${updateError.message}`);
 
     return new Response(JSON.stringify({ ok: true, status }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
-  } catch (e: any) {
-    console.error("resend-webhook error:", e.message);
-    return new Response(JSON.stringify({ error: e.message }), {
+  } catch (error) {
+    logError("resend-webhook", error);
+    return new Response(JSON.stringify({ error: "internal error" }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });

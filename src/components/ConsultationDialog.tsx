@@ -1,221 +1,163 @@
-import { useState } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
+import { CalendarCheck, ExternalLink, Loader2, Video } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import { Video, Loader2 } from "lucide-react";
-import { consultationRequestSchema } from "@/lib/validation";
-import { z } from "zod";
 import { RateLimitCountdown } from "@/components/RateLimitCountdown";
+import { BOOKING_CALENDAR_URL } from "@/constants";
+import { callFunction } from "@/lib/api";
 import { track } from "@/lib/analytics";
+import { consultationRequestSchema } from "@/lib/validation/schemas";
 
 interface ConsultationDialogProps {
-  trigger: React.ReactNode;
+  trigger: ReactNode;
+  /** Where the dialog was opened from (analytics only). */
+  source: string;
 }
 
-export function ConsultationDialog({ trigger }: ConsultationDialogProps) {
+const EMPTY_FORM = { name: "", email: "", message: "" };
+
+/**
+ * The single consultation-booking flow of the site: the visitor leaves name +
+ * email (so the request is on record), then opens the Zoho calendar with a
+ * direct click — a real user gesture, so browsers never block it as a pop-up.
+ */
+export function ConsultationDialog({ trigger, source }: ConsultationDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [rateLimit, setRateLimit] = useState<{ retryAfter: number; endpoint: string } | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: "",
-  });
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryAfter, setRetryAfter] = useState<number | null>(null);
+  const [formData, setFormData] = useState(EMPTY_FORM);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      consultationRequestSchema.parse(formData);
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        const msg = err.errors[0].message;
-        track("dialog_consultation_submit_error", {
-          source: "consultation_dialog",
-          result: "validation_error",
-          error_code: "ZodError",
-          error_message: msg,
-        });
-        toast({
-          title: "Validation Error",
-          description: msg,
-          variant: "destructive",
-        });
-        return;
-      }
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setError(null);
+    const parsed = consultationRequestSchema.safeParse({
+      ...formData,
+      message: formData.message || undefined,
+    });
+    if (!parsed.success) {
+      setError(parsed.error.errors[0]?.message ?? "Please check your details.");
+      return;
     }
 
     setLoading(true);
-    setRateLimit(null);
-    try {
-      const sanitizedData = {
-        name: formData.name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        message: formData.message.trim() || null,
-      };
+    const result = await callFunction<{ received: true }>("submit-consultation", parsed.data);
+    setLoading(false);
 
-      const { data, error } = await supabase.functions.invoke("submit-consultation", {
-        body: sanitizedData,
-      });
-
-      // Detect 429 from edge function
-      const ctx: any = (error as any)?.context;
-      if (ctx && typeof ctx.json === "function") {
-        try {
-          const errBody = await ctx.json();
-          if (errBody?.retry_after) {
-            setRateLimit({
-              retryAfter: Number(errBody.retry_after),
-              endpoint: errBody.endpoint || "consultation_request",
-            });
-            track("dialog_consultation_rate_limited", {
-              source: "consultation_dialog",
-              result: "rate_limited",
-              error_code: "rate_limited",
-              retry_after: Number(errBody.retry_after),
-              endpoint: errBody.endpoint || "consultation_request",
-            });
-            setLoading(false);
-            return;
-          }
-          if (errBody?.error) throw new Error(errBody.error);
-        } catch {
-          // fall through
-        }
-      }
-
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      if (data?.retry_after) {
-        setRateLimit({
-          retryAfter: Number(data.retry_after),
-          endpoint: data.endpoint || "consultation_request",
-        });
-        track("dialog_consultation_rate_limited", {
-          source: "consultation_dialog",
-          result: "rate_limited",
-          error_code: "rate_limited",
-          retry_after: Number(data.retry_after),
-          endpoint: data.endpoint || "consultation_request",
-        });
-        setLoading(false);
-        return;
-      }
-
-      track("dialog_consultation_submit_success", {
-        source: "consultation_dialog",
-        result: "success",
-        has_message: !!sanitizedData.message,
-      });
-      toast({
-        title: "Request submitted!",
-        description: "Redirecting to booking page...",
-      });
-
-      setTimeout(() => {
-        window.open("https://davormulali.zohobookings.eu/#/253150000000046052", "_blank");
-        setOpen(false);
-        setFormData({ name: "", email: "", message: "" });
-      }, 1000);
-    } catch (error: any) {
-      track("dialog_consultation_submit_error", {
-        source: "consultation_dialog",
-        result: "error",
-        error_code: error?.name || "FetchError",
-        error_message: error?.message || "unknown",
-      });
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to submit request. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+    if (result.success) {
+      track("dialog_consultation_submit_success", { source, result: "success" });
+      setSubmitted(true);
+      return;
     }
+    track("dialog_consultation_submit_error", { source, result: "error", error_code: result.code });
+    if (result.retryAfter) setRetryAfter(result.retryAfter);
+    setError(result.error);
   };
 
-  const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen) {
-      track("dialog_consultation_open", { source: "consultation_dialog", result: "info" });
-    }
-    setOpen(newOpen);
-    if (!newOpen) {
-      setTimeout(() => {
-        setRateLimit(null);
-      }, 300);
+  const handleOpenChange = (next: boolean) => {
+    if (next) track("dialog_consultation_open", { source, result: "info" });
+    setOpen(next);
+    if (!next) {
+      setSubmitted(false);
+      setError(null);
+      setFormData(EMPTY_FORM);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {trigger}
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Video className="w-5 h-5 text-primary" />
-            Book a Consultation
-          </DialogTitle>
-          <DialogDescription>
-            Enter your details before booking. You'll be redirected to the scheduling page.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {rateLimit && (
-            <RateLimitCountdown
-              retryAfterSeconds={rateLimit.retryAfter}
-              endpoint={rateLimit.endpoint}
-              onComplete={() => setRateLimit(null)}
-            />
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input
-              id="name"
-              placeholder="Your full name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              disabled={loading}
-            />
+        {submitted ? (
+          <div className="text-center py-4">
+            <CalendarCheck className="w-14 h-14 text-accent mx-auto mb-4" aria-hidden="true" />
+            <DialogHeader className="sm:text-center">
+              <DialogTitle className="text-center">Thank you — one last step</DialogTitle>
+              <DialogDescription className="text-center">
+                Your request is on record. Pick a time that suits you in the booking calendar.
+              </DialogDescription>
+            </DialogHeader>
+            <Button asChild className="w-full mt-6">
+              <a
+                href={BOOKING_CALENDAR_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => track("cta_book_consultation_click", { source, result: "success" })}
+              >
+                <ExternalLink className="w-4 h-4 mr-2" aria-hidden="true" />
+                Choose a time
+              </a>
+            </Button>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              disabled={loading}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="message">Message (optional)</Label>
-            <Textarea
-              id="message"
-              placeholder="Brief description of what you'd like to discuss..."
-              value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-              disabled={loading}
-              rows={3}
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={loading || !!rateLimit}>
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              "Continue to Booking"
-            )}
-          </Button>
-        </form>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Video className="w-5 h-5 text-primary" aria-hidden="true" />
+                Book a Consultation
+              </DialogTitle>
+              <DialogDescription>
+                Leave your details, then choose a time in the booking calendar.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
+              {retryAfter !== null && (
+                <RateLimitCountdown retryAfterSeconds={retryAfter} onComplete={() => setRetryAfter(null)} />
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="consultation-name">Name *</Label>
+                <Input
+                  id="consultation-name"
+                  autoComplete="name"
+                  placeholder="Your full name"
+                  value={formData.name}
+                  onChange={(event) => setFormData((previous) => ({ ...previous, name: event.target.value }))}
+                  disabled={loading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="consultation-email">Email *</Label>
+                <Input
+                  id="consultation-email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="your@email.com"
+                  value={formData.email}
+                  onChange={(event) => setFormData((previous) => ({ ...previous, email: event.target.value }))}
+                  disabled={loading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="consultation-message">Message (optional)</Label>
+                <Textarea
+                  id="consultation-message"
+                  placeholder="Brief description of what you'd like to discuss..."
+                  value={formData.message}
+                  onChange={(event) => setFormData((previous) => ({ ...previous, message: event.target.value }))}
+                  disabled={loading}
+                  rows={3}
+                />
+              </div>
+              {error && (
+                <p role="alert" className="text-sm text-destructive">{error}</p>
+              )}
+              <Button type="submit" className="w-full" disabled={loading || retryAfter !== null}>
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Continue to Booking"
+                )}
+              </Button>
+            </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

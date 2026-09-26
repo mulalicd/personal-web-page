@@ -10,10 +10,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { loginSchema, emailSchema } from "@/lib/validation";
-import { z } from "zod";
+import { loginSchema, emailSchema } from "@/lib/validation/schemas";
 
-type Mode = "signin" | "signup" | "forgot";
+type Mode = "signin" | "forgot";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -37,45 +36,16 @@ export default function Auth() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     resetMessages();
-    try {
-      loginSchema.parse({ email, password });
-    } catch (err) {
-      if (err instanceof z.ZodError) return setError(err.errors[0].message);
-    }
+    const parsed = loginSchema.safeParse({ email, password });
+    if (!parsed.success) return setError(parsed.error.errors[0]?.message ?? "Please check your details.");
     setLoading(true);
     try {
-      const { error: signInError } = await signIn(email, password);
+      const { error: signInError } = await signIn(parsed.data.email, password);
       if (signInError) {
         if (signInError.message.includes("Invalid login credentials")) setError("Invalid email or password");
         else if (signInError.message.includes("Email not confirmed")) setError("Please verify your email address");
-        else setError(signInError.message);
+        else setError("Sign-in failed. Please try again.");
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    resetMessages();
-    try {
-      loginSchema.parse({ email, password });
-    } catch (err) {
-      if (err instanceof z.ZodError) return setError(err.errors[0].message);
-    }
-    setLoading(true);
-    try {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: `${window.location.origin}/admin` },
-      });
-      if (signUpError) {
-        if (signUpError.message.includes("already registered")) setError("This email is already registered. Please sign in.");
-        else setError(signUpError.message);
-        return;
-      }
-      setSuccess("Account created. The first registered user automatically receives admin access. Signing you in...");
     } finally {
       setLoading(false);
     }
@@ -84,21 +54,17 @@ export default function Auth() {
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
     resetMessages();
-    try {
-      emailSchema.parse(email);
-    } catch (err) {
-      if (err instanceof z.ZodError) return setError(err.errors[0].message);
-    }
+    const parsedEmail = emailSchema.safeParse(email);
+    if (!parsedEmail.success) return setError(parsedEmail.error.errors[0]?.message ?? "Please enter a valid email.");
+    if (!supabase) return setError("Password reset is temporarily unavailable.");
     setLoading(true);
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(parsedEmail.data, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
-      if (resetError) {
-        setError(resetError.message);
-        return;
-      }
-      setSuccess("Password reset email sent. Check your inbox (and spam folder).");
+      if (resetError) console.error("[auth] reset request failed:", resetError.message);
+      // Same answer either way, so the form cannot be used to probe which emails exist.
+      setSuccess("If this email belongs to the admin account, a reset link is on its way. Check your inbox (and spam folder).");
     } finally {
       setLoading(false);
     }
@@ -155,10 +121,9 @@ export default function Auth() {
             )}
 
             <Tabs value={mode} onValueChange={(v) => { setMode(v as Mode); resetMessages(); }}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                <TabsTrigger value="forgot">Forgot</TabsTrigger>
+                <TabsTrigger value="forgot">Forgot password</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
@@ -175,19 +140,6 @@ export default function Auth() {
                   >
                     Forgot password?
                   </button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4 mt-4">
-                  <EmailField email={email} setEmail={setEmail} disabled={loading} />
-                  <PasswordField password={password} setPassword={setPassword} disabled={loading} />
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating...</> : "Create Account"}
-                  </Button>
-                  <p className="text-xs text-muted-foreground text-center">
-                    The first registered user automatically receives admin privileges.
-                  </p>
                 </form>
               </TabsContent>
 

@@ -1,57 +1,15 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { ExternalLink, BookOpen, Monitor, Gamepad2 } from "lucide-react";
+import { ExternalLink, BookOpen, Monitor, Gamepad2, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import aisbpLogo from "@/assets/aisbp-framework-logo.png";
+import aisbpLogo from "@/assets/aisbp-framework-logo.webp";
+import { profile } from "@/content/profile";
 
-const products = [
-  {
-    title: "AISBP Framework™ – Complete System",
-    price: "€100",
-    description:
-      "Includes:\n– AI Solved Business Problems (PDF)\n– AISBP Operational Intelligence System (Web App)\n– The Leadership Matrix™ Simulation",
-    buttonText: "Secure Access via PayPal",
-    link: "https://www.paypal.com/ncp/payment/TV29C24U3J5SE",
-    icon: BookOpen,
-    featured: true,
-  },
-  {
-    title: "AI Solved Business Problems – Strategic Field Manual (PDF)",
-    price: "€30",
-    description:
-      "Structured documentation of 50 recurring operational breakdowns across 10 industries, including documented failure modes and conservative ROI models.",
-    buttonText: "Purchase PDF",
-    link: "https://www.paypal.com/ncp/payment/CKF79P6W4R93Q",
-    icon: BookOpen,
-  },
-  {
-    title: "AISBP Operational Intelligence System – Interactive Access",
-    price: "€50",
-    description:
-      "Interactive executive decision environment with indexed problems, structured prompts, and financial modeling tools.",
-    buttonText: "Access Web Application",
-    link: "https://www.paypal.com/ncp/payment/BH2JQCNN953EL",
-    icon: Monitor,
-  },
-  {
-    title: "The Leadership Matrix™ – Executive Simulation Environment",
-    price: "€40",
-    description:
-      "Structured crisis simulation for senior operational leaders navigating capital constraints, stakeholder friction, and time-sensitive decision pressure.",
-    buttonText: "Access Simulation",
-    link: "https://www.paypal.com/ncp/payment/SVXDJYGJVHDLA",
-    icon: Gamepad2,
-  },
-];
+// Icons follow product order: complete system, PDF, web app, simulation.
+const PRODUCT_ICONS: LucideIcon[] = [BookOpen, BookOpen, Monitor, Gamepad2];
 
-const stats = [
-  { value: "€12M+", label: "Generated ROI" },
-  { value: "47", label: "Pilot Implementations" },
-  { value: "50", label: "Business Problems" },
-  { value: "150", label: "Failure Modes" },
-];
-
+/** AISBP Framework™ products — includes the 4th book, "AI Solved Business Problems". */
 export function AISBPSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -110,7 +68,7 @@ export function AISBPSection() {
               transition={{ delay: 0.4 }}
               className="text-muted-foreground max-w-2xl mx-auto"
             >
-              An integrated executive decision system built on documented operational failure patterns, conservative financial modeling, and structured AI reasoning frameworks.
+              {profile.aisbp.summary}
             </motion.p>
           </div>
 
@@ -121,8 +79,8 @@ export function AISBPSection() {
             transition={{ delay: 0.45 }}
             className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mb-12"
           >
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center bg-card p-4 rounded-xl border border-border">
+            {profile.aisbp.stats.map((stat) => (
+              <div key={stat.label} className="text-center bg-card p-4 rounded-xl border border-border">
                 <div className="text-xl md:text-2xl font-bold text-primary">{stat.value}</div>
                 <div className="text-xs text-muted-foreground">{stat.label}</div>
               </div>
@@ -131,11 +89,11 @@ export function AISBPSection() {
 
           {/* Products Grid */}
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {products.map((product, index) => {
-              const Icon = product.icon;
+            {profile.aisbp.products.map((product, index) => {
+              const Icon = PRODUCT_ICONS[index] ?? BookOpen;
               return (
                 <motion.div
-                  key={index}
+                  key={product.title}
                   initial={{ opacity: 0, y: 30 }}
                   animate={isInView ? { opacity: 1, y: 0 } : {}}
                   transition={{ delay: 0.5 + index * 0.12 }}
@@ -160,7 +118,7 @@ export function AISBPSection() {
                     <p className="text-xs text-muted-foreground mb-5 whitespace-pre-line leading-relaxed">
                       {product.description}
                     </p>
-                    <Button variant="default" size="sm" className={product.featured ? "w-full" : "w-full"} asChild>
+                    <Button variant="default" size="sm" className="w-full" asChild>
                       <a
                         href={product.link}
                         target="_blank"

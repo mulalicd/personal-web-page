@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
-import { X, Zap, AlertTriangle, Lightbulb, TrendingUp, Code2 } from "lucide-react";
+import { X, AlertTriangle, Lightbulb, TrendingUp, Code2 } from "lucide-react";
 import { getPortfolioImage } from "./portfolioImages";
 
 interface WebAppDetail {
@@ -32,17 +33,42 @@ interface PortfolioDetailCardProps {
   onClose: () => void;
 }
 
+/**
+ * Portfolio item detail modal. Content comes unchanged from PortfolioSection
+ * (frozen by the Director); this component only adds dialog semantics,
+ * Esc-to-close and a proper exit animation.
+ */
 export function PortfolioDetailCard({ item, onClose }: PortfolioDetailCardProps) {
-  if (!item) return null;
+  useEffect(() => {
+    if (!item) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [item, onClose]);
 
+  return createPortal(
+    <AnimatePresence>
+      {item && <DetailContent key={item.id} item={item} onClose={onClose} />}
+    </AnimatePresence>,
+    document.body
+  );
+}
+
+function DetailContent({ item, onClose }: { item: PortfolioItem; onClose: () => void }) {
   const isApp = item.type === "app";
   const name = isApp ? item.name : item.title;
   const accentClass = isApp ? "text-primary" : "text-accent";
   const accentBgClass = isApp ? "bg-primary/10 text-primary" : "bg-accent/10 text-accent";
+  const titleId = `portfolio-item-title-${item.id}`;
 
-  return createPortal(
-    <AnimatePresence>
-      {item && (
+  return (
         <>
           {/* Backdrop */}
           <motion.div
@@ -56,6 +82,9 @@ export function PortfolioDetailCard({ item, onClose }: PortfolioDetailCardProps)
           {/* Centering wrapper */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={titleId}
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -79,7 +108,10 @@ export function PortfolioDetailCard({ item, onClose }: PortfolioDetailCardProps)
                   {item.industry}
                 </span>
                 <button
+                  type="button"
                   onClick={onClose}
+                  aria-label="Close details"
+                  autoFocus
                   className="p-1.5 bg-card/90 backdrop-blur-sm rounded-lg text-muted-foreground hover:text-foreground border border-border/50 transition-colors"
                 >
                   <X className="w-4 h-4" />
@@ -94,7 +126,7 @@ export function PortfolioDetailCard({ item, onClose }: PortfolioDetailCardProps)
 
             {/* Content */}
             <div className="p-5 sm:p-6 overflow-y-auto flex-1">
-              <h3 className="text-xl font-bold text-foreground mb-1">{name}</h3>
+              <h3 id={titleId} className="text-xl font-bold text-foreground mb-1">{name}</h3>
               {isApp && (
                 <p className="text-xs text-muted-foreground mb-4">{item.purpose}</p>
               )}
@@ -157,8 +189,5 @@ export function PortfolioDetailCard({ item, onClose }: PortfolioDetailCardProps)
             </motion.div>
           </div>
         </>
-      )}
-    </AnimatePresence>,
-    document.body
   );
 }

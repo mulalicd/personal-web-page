@@ -39,3 +39,36 @@ Date: 2026-09-26
   the CONSTITUTION header version has a matching tag) — v1.5.3/v1.5.4 slipped.
 - project-guard: flag tracked binary archives (`.zip`, `.7z`, `.rar`) by
   extension, since their contents cannot be pattern-scanned.
+
+### 2026-09-26 — Sprint 01 implementation
+- Gotcha: `supabase functions deploy --use-api` bundles relative imports from
+  anywhere in the repo (`../../../src/...`), so browser and Edge Functions can
+  share one Zod schema file and one content module — but bare imports (`zod`)
+  need an import map: `supabase/functions/deno.json` + `import_map` per function
+  in `config.toml`.
+- Correction: legacy `check_rate_limit_v2` blocked one attempt early (budget 3
+  → 3rd attempt blocked). Found only by a live smoke test; fixed in migration
+  20260926000100. → Test rate limits at the exact boundary, not just "does it block".
+- Correction: legacy `email_send_metrics` upsert used `onConflict` on a PARTIAL
+  unique index — Postgres cannot target it, so metrics silently failed. Replaced
+  by select-then-update/insert.
+- Gotcha: curl from Git Bash on Windows sends non-ASCII argument text in the
+  ANSI code page, so "Šehić" arrives as invalid UTF-8 and fails validation. Send
+  test bodies from a UTF-8 file (`--data-binary @file`). The validator was fine.
+- Gotcha: the in-app browser pane freezes requestAnimationFrame (0 fps) while
+  not painted, so framer-motion content stays at `initial` (opacity 0 / offset).
+  My earlier audit finding "hero empty for 5 s" was this artifact, not a site
+  bug. → Verify animation-dependent UI via DOM state, not pane screenshots.
+- Gotcha: `supabase config push` with a minimal config.toml would also reset
+  unrelated auth settings (MFA TOTP off, email confirmations off, OTP length) to
+  local defaults. Never push partial config; change single auth settings in the
+  dashboard or via the Management API.
+- Course correction: python heredoc edits with "\n" inside string literals
+  wrote a real newline into ChatBot.tsx (`indexOf("⏎")`) — caught by reading
+  the file. → Use the Edit tool or raw strings for code containing escapes.
+
+## Commander Improvement Candidates (continued)
+- ENGINEERING_RULES E-5/E-6 for Supabase: document the shared-module pattern
+  (`src/lib/validation/schemas.ts` imported by Edge Functions via import map) as
+  the M-7 answer for Vite + Supabase projects.
+- DONE_CHECKLIST: "Rate limits tested at the exact boundary (N allowed, N+1 blocked)".

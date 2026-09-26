@@ -1,15 +1,8 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 
-// Helper: parsira "25+", "€16M", "90%", "500+" u broj + prefix/suffix
-function parseMetric(raw: string): { prefix: string; value: number; suffix: string } {
-  const prefix = raw.startsWith("€") ? "€" : "";
-  const stripped = raw.replace("€", "");
-  const suffix = stripped.endsWith("+") ? "+" : stripped.endsWith("%") ? "%" : stripped.endsWith("M") ? "M" : "";
-  const numStr = stripped.replace(/[+%M]/g, "");
-  const value = parseFloat(numStr) || 0;
-  return { prefix, value, suffix };
-}
+import type { HeadlineMetric } from "@/types";
+import { parseMetric } from "@/lib/metrics";
 
 function useAnimatedCounter(
   target: number,
@@ -48,12 +41,8 @@ function useAnimatedCounter(
 }
 
 interface MetricBar3DProps {
-  metric: string;
-  label: string;
-  sub?: string;
-  percentage: number; // 0-100 for bar height
+  metric: HeadlineMetric;
   delay?: number;
-  color?: "primary" | "accent" | "purple" | "amber";
 }
 
 const colorMap = {
@@ -87,18 +76,13 @@ const colorMap = {
   },
 };
 
-export function MetricBar3D({
-  metric,
-  label,
-  sub,
-  percentage,
-  delay = 0,
-  color = "primary",
-}: MetricBar3DProps) {
+/** One animated 3D metric bar; the number counts up when scrolled into view. */
+export function MetricBar3D({ metric, delay = 0 }: MetricBar3DProps) {
+  const { label, barPercentage: percentage, color } = metric;
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
   const c = colorMap[color];
-  const { prefix, value, suffix } = parseMetric(metric);
+  const { prefix, value, suffix } = parseMetric(metric.value);
   const animatedValue = useAnimatedCounter(value, isInView, 1800, delay + 0.3);
 
   return (
@@ -168,9 +152,6 @@ export function MetricBar3D({
         transition={{ delay: delay + 0.5, duration: 0.4 }}
         className="text-center mt-2 h-10 flex flex-col justify-start"
       >
-        {sub && (
-          <div className="text-xs font-semibold text-accent">{sub}</div>
-        )}
         <div className="text-[11px] text-muted-foreground leading-tight">
           {label}
         </div>
@@ -180,31 +161,18 @@ export function MetricBar3D({
 }
 
 interface MetricBarGroupProps {
-  metrics: {
-    metric: string;
-    label: string;
-    sub?: string;
-    percentage: number;
-    color?: "primary" | "accent" | "purple" | "amber";
-  }[];
+  metrics: HeadlineMetric[];
   className?: string;
 }
 
+/** Row of headline metric bars (2×2 grid on phones). */
 export function MetricBarGroup({ metrics, className = "" }: MetricBarGroupProps) {
   return (
     <div
       className={`grid grid-cols-2 sm:flex sm:items-end sm:justify-center gap-x-4 gap-y-6 sm:gap-6 md:gap-8 place-items-center w-full overflow-hidden ${className}`}
     >
       {metrics.map((m, i) => (
-        <MetricBar3D
-          key={i}
-          metric={m.metric}
-          label={m.label}
-          sub={m.sub}
-          percentage={m.percentage}
-          delay={0.2 + i * 0.15}
-          color={m.color || "primary"}
-        />
+        <MetricBar3D key={m.label} metric={m} delay={0.2 + i * 0.15} />
       ))}
     </div>
   );

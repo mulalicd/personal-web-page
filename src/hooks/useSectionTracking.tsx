@@ -1,43 +1,28 @@
 import { useEffect } from "react";
-import { setLastVisibleSection, track } from "@/lib/analytics";
+import { track } from "@/lib/analytics";
+
+const SECTION_VISIBLE_RATIO = 0.4;
 
 /**
- * Observes all <section id="..."> elements on the page and:
- *  - updates the global "last visible section" (auto-attached to all events)
- *  - emits a `section_view` event the first time each section becomes visible
- *
- * Cheap: single IntersectionObserver, no per-section listeners.
+ * Emits one `section_view` event the first time each `<section id>` becomes
+ * visible — shows how far visitors read. Single IntersectionObserver.
  */
-export function useSectionTracking() {
+export function useSectionTracking(): void {
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") return;
-
     const seen = new Set<string>();
-
     const observer = new IntersectionObserver(
       (entries) => {
-        // Pick the most-visible intersecting section in this batch
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-
-        for (const entry of visible) {
+        for (const entry of entries) {
           const id = (entry.target as HTMLElement).id;
-          if (!id) continue;
-          setLastVisibleSection(id);
-          if (!seen.has(id)) {
-            seen.add(id);
-            track("section_view", { source: id, result: "info" });
-          }
-          break; // only update once per batch
+          if (!entry.isIntersecting || !id || seen.has(id)) continue;
+          seen.add(id);
+          track("section_view", { source: id, result: "info" });
         }
       },
-      { threshold: [0.4] }
+      { threshold: [SECTION_VISIBLE_RATIO] },
     );
-
-    const sections = document.querySelectorAll<HTMLElement>("section[id]");
-    sections.forEach((s) => observer.observe(s));
-
+    document.querySelectorAll<HTMLElement>("section[id]").forEach((section) => observer.observe(section));
     return () => observer.disconnect();
   }, []);
 }

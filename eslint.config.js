@@ -23,4 +23,18 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    // shadcn/ui primitives are generated and never edited by hand (DL-011) —
+    // their upstream patterns (empty prop interfaces, variant exports) are accepted.
+    files: ["src/components/ui/**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-empty-object-type": "off",
+      "react-refresh/only-export-components": "off",
+    },
+  },
+  {
+    // Deno Edge Functions: Deno globals, no React.
+    files: ["supabase/functions/**/*.ts"],
+    languageOptions: { globals: { Deno: "readonly" } },
+  },
 );

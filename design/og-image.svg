@@ -1,0 +1,100 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="60%" style="stop-color:#0d1f3c"/>
+      <stop offset="100%" style="stop-color:#071220"/>
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e6fbf"/>
+      <stop offset="100%" style="stop-color:#0d4a8a"/>
+    </linearGradient>
+    <linearGradient id="nameGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4fa3e8"/>
+      <stop offset="100%" style="stop-color:#16a86a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Grid lines -->
+  <g opacity="0.04" stroke="#4fa3e8" stroke-width="1">
+    <line x1="0" y1="105" x2="1200" y2="105"/>
+    <line x1="0" y1="210" x2="1200" y2="210"/>
+    <line x1="0" y1="315" x2="1200" y2="315"/>
+    <line x1="0" y1="420" x2="1200" y2="420"/>
+    <line x1="0" y1="525" x2="1200" y2="525"/>
+    <line x1="200" y1="0" x2="200" y2="630"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="1000" y1="0" x2="1000" y2="630"/>
+  </g>
+
+  <!-- Photo area decorative circles -->
+  <circle cx="940" cy="315" r="220" fill="none" stroke="#1e6fbf" stroke-width="1" opacity="0.25"/>
+  <circle cx="940" cy="315" r="245" fill="none" stroke="#1e6fbf" stroke-width="0.5" opacity="0.12"/>
+  <circle cx="940" cy="315" r="190" fill="#0d3a6e" opacity="0.4"/>
+
+  <!-- Profile photo — embed as base64 ili relativni path -->
+  <image href="../src/assets/davor-profile-real.png" x="755" y="130" width="370" height="370" clip-path="url(#photoClip)" preserveAspectRatio="xMidYMid slice"/>
+  <clipPath id="photoClip">
+    <circle cx="940" cy="315" r="185"/>
+  </clipPath>
+  <circle cx="940" cy="315" r="185" fill="none" stroke="#1e6fbf" stroke-width="2"/>
+
+  <!-- Left accent bar -->
+  <rect x="72" y="120" width="4" height="80" rx="2" fill="url(#blueGrad)"/>
+
+  <!-- Top label badge -->
+  <rect x="88" y="120" width="220" height="28" rx="14" fill="#1e6fbf" fill-opacity="0.15"/>
+  <text x="198" y="139" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="600" letter-spacing="2" fill="#4fa3e8">AI EDUCATION LEADER</text>
+
+  <!-- Name -->
+  <text x="88" y="220" font-family="Georgia, 'Times New Roman', serif" font-size="82" font-weight="700" fill="white">Davor</text>
+  <text x="88" y="308" font-family="Georgia, 'Times New Roman', serif" font-size="82" font-weight="700" fill="url(#nameGrad)">Mulali&#263;</text>
+
+  <!-- Title -->
+  <text x="88" y="355" font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="400" fill="#8ab4d4" letter-spacing="0.5">C-Level AI Leader  •  CEO &amp; Managing Director</text>
+
+  <!-- Divider -->
+  <line x1="88" y1="378" x2="680" y2="378" stroke="#1e6fbf" stroke-width="1" opacity="0.4"/>
+
+  <!-- Metrics -->
+  <text x="88" y="415" font-family="Georgia, serif" font-size="28" font-weight="700" fill="#4fa3e8">25+</text>
+  <text x="88" y="435" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#5a7a9a" letter-spacing="0.5">Years Experience</text>
+
+  <text x="230" y="415" font-family="Georgia, serif" font-size="28" font-weight="700" fill="#16a86a">€16M</text>
+  <text x="230" y="435" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#5a7a9a" letter-spacing="0.5">Operating Income (+33%)</text>
+
+  <text x="390" y="415" font-family="Georgia, serif" font-size="28" font-weight="700" fill="#a78bfa">673%</text>
+  <text x="390" y="435" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#5a7a9a" letter-spacing="0.5">Net Profit Inc.</text>
+
+  <text x="510" y="415" font-family="Georgia, serif" font-size="28" font-weight="700" fill="#f5a623">€11M+</text>
+  <text x="510" y="435" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#5a7a9a" letter-spacing="0.5">Contracts Secured</text>
+
+  <!-- Tag pills -->
+  <rect x="88" y="460" width="120" height="26" rx="13" fill="#1e6fbf" fill-opacity="0.2" stroke="#1e6fbf" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="148" y="477" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="500" fill="#4fa3e8">AI Strategy</text>
+
+  <rect x="220" y="460" width="110" height="26" rx="13" fill="#16a86a" fill-opacity="0.15" stroke="#16a86a" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="275" y="477" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="500" fill="#16a86a">Education</text>
+
+  <rect x="342" y="460" width="130" height="26" rx="13" fill="#a78bfa" fill-opacity="0.15" stroke="#a78bfa" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="407" y="477" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="500" fill="#a78bfa">Business Consulting</text>
+
+  <rect x="484" y="460" width="100" height="26" rx="13" fill="#f5a623" fill-opacity="0.15" stroke="#f5a623" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="534" y="477" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="500" fill="#f5a623">Author</text>
+
+  <!-- Bottom bar -->
+  <rect x="0" y="570" width="1200" height="60" fill="#060e1e" fill-opacity="0.8"/>
+  <text x="88" y="606" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" fill="#4fa3e8" font-weight="500">mulalic.ai-studio.wiki</text>
+  <circle cx="1155" cy="600" r="6" fill="#16a86a"/>
+  <text x="1143" y="604" text-anchor="end" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#8ab4d4">Available now · CEO / COO / Chief AI</text>
+
+  <!-- Corner dots -->
+  <circle cx="88" cy="72" r="4" fill="#1e6fbf" opacity="0.5"/>
+  <circle cx="104" cy="72" r="4" fill="#16a86a" opacity="0.5"/>
+  <circle cx="120" cy="72" r="4" fill="#a78bfa" opacity="0.5"/>
+</svg>

@@ -1,14 +1,15 @@
 import { Linkedin, Download } from "lucide-react";
 import { CVRequestDialog } from "@/components/CVRequestDialog";
-import { Button } from "@/components/ui/button";
 import { DMLogo } from "@/components/DMLogo";
 import { forwardRef } from "react";
+import { profile } from "@/content/profile";
 
 // Forward ref button for DialogTrigger compatibility
 const CVButton = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
   (props, ref) => (
     <button
       ref={ref}
+      type="button"
       {...props}
       className="flex items-center gap-2 px-4 py-2 bg-background/10 dark:bg-secondary hover:bg-background/20 dark:hover:bg-secondary/80 rounded-full transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-foreground dark:focus-visible:ring-offset-card"
     >
@@ -26,6 +27,7 @@ const footerLinks = [
   { label: "AISBP", href: "#aisbp" },
   { label: "Portfolio", href: "#portfolio" },
   { label: "Volunteering", href: "#volunteering" },
+  { label: "References", href: "#references" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -38,8 +40,8 @@ export function Footer() {
           <div className="mb-4">
             <DMLogo size={56} />
           </div>
-          <h3 className="text-xl font-semibold mb-1">Davor Mulalić</h3>
-          <p className="text-background/70 dark:text-muted-foreground text-sm">C-Level AI Leader</p>
+          <p className="text-xl font-semibold mb-1">{profile.name}</p>
+          <p className="text-background/70 dark:text-muted-foreground text-sm">{profile.headline}</p>
         </div>
 
         {/* Navigation Links */}
@@ -58,7 +60,7 @@ export function Footer() {
         {/* Actions */}
         <div className="flex flex-wrap justify-center gap-4 mb-12">
           <a
-            href="https://www.linkedin.com/in/davormulalic/"
+            href={profile.linkedinUrl}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Connect with Davor Mulalić on LinkedIn"
@@ -75,7 +77,7 @@ export function Footer() {
         {/* Divider & Copyright */}
         <div className="border-t border-background/10 dark:border-border pt-8">
           <p className="text-background/60 dark:text-muted-foreground text-sm text-center">
-            © 2026 Davor Mulalić. All rights reserved.
+            © {new Date().getFullYear()} {profile.name}. All rights reserved.
           </p>
         </div>
       </div>

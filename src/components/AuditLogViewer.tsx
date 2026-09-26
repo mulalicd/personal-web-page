@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { Json } from "@/integrations/supabase/types";
 import { motion } from "framer-motion";
 import { ScrollText, RefreshCw, Filter, Search, ChevronDown, ChevronRight, AlertTriangle, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -16,8 +17,8 @@ interface AuditEntry {
   action: string;
   target_table: string;
   target_id: string | null;
-  old_value: any;
-  new_value: any;
+  old_value: Json;
+  new_value: Json;
   ip_address: string | null;
   user_agent: string | null;
   created_at: string;
@@ -63,6 +64,14 @@ function actionBadge(action: string) {
   );
 }
 
+/** Extract `{ error: "..." }` from a JSON audit value, if present. */
+function readErrorField(value: Json): string | null {
+  if (value && typeof value === "object" && !Array.isArray(value) && typeof value.error === "string") {
+    return value.error;
+  }
+  return null;
+}
+
 export function AuditLogViewer() {
   const [entries, setEntries] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +81,7 @@ export function AuditLogViewer() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const fetchEntries = async () => {
+    if (!supabase) return;
     setLoading(true);
     try {
       let query = supabase
@@ -88,7 +98,7 @@ export function AuditLogViewer() {
       const { data, error } = await query;
       if (error) throw error;
       setEntries((data as AuditEntry[]) || []);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Audit log fetch error:", err);
       toast({
         title: "Error",
@@ -218,8 +228,7 @@ export function AuditLogViewer() {
           {filtered.map((e) => {
             const isOpen = expanded.has(e.id);
             const failure = isFailureAction(e.action);
-            const errorMsg =
-              (failure && (e.new_value?.error as string | undefined)) || null;
+            const errorMsg = failure ? readErrorField(e.new_value) : null;
             return (
               <motion.div
                 key={e.id}
@@ -311,7 +320,7 @@ function JsonBlock({
   tone = "default",
 }: {
   title: string;
-  value: any;
+  value: Json;
   tone?: "default" | "error";
 }) {
   const isError = tone === "error";

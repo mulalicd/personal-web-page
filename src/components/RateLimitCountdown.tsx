@@ -1,48 +1,45 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, AlertTriangle } from "lucide-react";
+import { Clock } from "lucide-react";
 
 interface RateLimitCountdownProps {
   retryAfterSeconds: number;
-  endpoint?: string;
   onComplete?: () => void;
 }
 
+const SECONDS_PER_MINUTE = 60;
+const TICK_MS = 1000;
+
 function formatMMSS(totalSeconds: number): string {
-  const s = Math.max(0, Math.floor(totalSeconds));
-  const mm = String(Math.floor(s / 60)).padStart(2, "0");
-  const ss = String(s % 60).padStart(2, "0");
-  return `${mm}:${ss}`;
+  const seconds = Math.max(0, Math.floor(totalSeconds));
+  const minutes = String(Math.floor(seconds / SECONDS_PER_MINUTE)).padStart(2, "0");
+  const rest = String(seconds % SECONDS_PER_MINUTE).padStart(2, "0");
+  return `${minutes}:${rest}`;
 }
 
-export function RateLimitCountdown({
-  retryAfterSeconds,
-  endpoint,
-  onComplete,
-}: RateLimitCountdownProps) {
+/**
+ * Friendly "please wait" notice with a live countdown, shown when the server
+ * rate-limits a form. Contains no internal endpoint names (audit finding).
+ */
+export function RateLimitCountdown({ retryAfterSeconds, onComplete }: RateLimitCountdownProps) {
   const [remaining, setRemaining] = useState(retryAfterSeconds);
+  // Keep the latest callback without restarting the timer when the parent re-renders.
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     setRemaining(retryAfterSeconds);
-  }, [retryAfterSeconds]);
-
-  useEffect(() => {
-    if (remaining <= 0) {
-      onComplete?.();
-      return;
-    }
     const id = window.setInterval(() => {
-      setRemaining((prev) => {
-        if (prev <= 1) {
+      setRemaining((previous) => {
+        if (previous <= 1) {
           window.clearInterval(id);
-          onComplete?.();
+          onCompleteRef.current?.();
           return 0;
         }
-        return prev - 1;
+        return previous - 1;
       });
-    }, 1000);
+    }, TICK_MS);
     return () => window.clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retryAfterSeconds]);
 
   if (remaining <= 0) return null;
@@ -51,27 +48,17 @@ export function RateLimitCountdown({
     <motion.div
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-md border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3"
+      className="rounded-md border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3"
       role="status"
       aria-live="polite"
     >
-      <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+      <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground">
-          Too many requests
-        </p>
+        <p className="text-sm font-medium text-foreground">Thanks for your patience</p>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {endpoint
-            ? `The "${endpoint}" endpoint is temporarily blocked.`
-            : "This action is temporarily blocked."}{" "}
-          Please try again in:
+          We received several requests in a short time. You can try again in{" "}
+          <span className="font-mono font-semibold tabular-nums text-foreground">{formatMMSS(remaining)}</span>.
         </p>
-        <div className="mt-2 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-destructive" />
-          <span className="font-mono text-lg font-semibold tabular-nums text-destructive">
-            {formatMMSS(remaining)}
-          </span>
-        </div>
       </div>
     </motion.div>
   );

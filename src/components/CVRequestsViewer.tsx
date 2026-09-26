@@ -25,7 +25,6 @@ import {
 
 export interface CVRequest {
   id: string;
-  token: string;
   email: string;
   name: string | null;
   status: string;
@@ -92,7 +91,7 @@ interface Props {
   requests: CVRequest[];
   loading: boolean;
   processing: string | null;
-  onAction: (token: string, action: "approve" | "reject") => void;
+  onAction: (requestId: string, action: "approve" | "reject") => void;
 }
 
 export function CVRequestsViewer({ requests, loading, processing, onAction }: Props) {
@@ -115,9 +114,9 @@ export function CVRequestsViewer({ requests, loading, processing, onAction }: Pr
   }, [requests, statusFilter, timeRange, search]);
 
   const counts = useMemo(() => {
-    const c = { pending: 0, approved: 0, rejected: 0 };
+    const c: Record<"pending" | "approved" | "rejected", number> = { pending: 0, approved: 0, rejected: 0 };
     filtered.forEach((r) => {
-      if (r.status in c) (c as any)[r.status]++;
+      if (r.status === "pending" || r.status === "approved" || r.status === "rejected") c[r.status]++;
     });
     return c;
   }, [filtered]);
@@ -230,8 +229,8 @@ export function CVRequestsViewer({ requests, loading, processing, onAction }: Pr
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          onClick={() => onAction(request.token, "approve")}
-                          disabled={processing === request.token}
+                          onClick={() => onAction(request.id, "approve")}
+                          disabled={processing === request.id}
                           className="bg-green-600 hover:bg-green-700"
                         >
                           <CheckCircle className="w-4 h-4 mr-1" />
@@ -240,8 +239,8 @@ export function CVRequestsViewer({ requests, loading, processing, onAction }: Pr
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => onAction(request.token, "reject")}
-                          disabled={processing === request.token}
+                          onClick={() => onAction(request.id, "reject")}
+                          disabled={processing === request.id}
                         >
                           <XCircle className="w-4 h-4 mr-1" />
                           Reject

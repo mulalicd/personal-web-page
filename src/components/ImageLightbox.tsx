@@ -1,6 +1,6 @@
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface ImageData {
   src: string;
@@ -18,19 +18,19 @@ interface ImageLightboxProps {
 const ImageLightbox = ({ images, currentIndex, isOpen, onClose, onNavigate }: ImageLightboxProps) => {
   const [direction, setDirection] = useState(0);
 
-  const goToPrevious = () => {
+  const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
       setDirection(-1);
       onNavigate(currentIndex - 1);
     }
-  };
+  }, [currentIndex, onNavigate]);
 
-  const goToNext = () => {
+  const goToNext = useCallback(() => {
     if (currentIndex < images.length - 1) {
       setDirection(1);
       onNavigate(currentIndex + 1);
     }
-  };
+  }, [currentIndex, images.length, onNavigate]);
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 50;
@@ -57,7 +57,7 @@ const ImageLightbox = ({ images, currentIndex, isOpen, onClose, onNavigate }: Im
       document.removeEventListener("keydown", handleKeydown);
       document.body.style.overflow = "unset";
     };
-  }, [isOpen, currentIndex]);
+  }, [isOpen, goToNext, goToPrevious, onClose]);
 
   const currentImage = images[currentIndex];
 
