@@ -72,3 +72,34 @@ Date: 2026-09-26
   (`src/lib/validation/schemas.ts` imported by Edge Functions via import map) as
   the M-7 answer for Vite + Supabase projects.
 - DONE_CHECKLIST: "Rate limits tested at the exact boundary (N allowed, N+1 blocked)".
+
+### 2026-09-26 — Deploy day
+- Gotcha: the Supabase CLI session became 401 Unauthorized within hours (after
+  the Director used the dashboard). Re-check `supabase projects list` before any
+  CLI-dependent step instead of assuming the earlier login still holds.
+- Gotcha: `GET /auth/v1/settings` showed `disable_signup: true` but also
+  `external.email: false` — turning off the whole Email provider also blocks the
+  admin's own password sign-in. The correct switch is "Allow new users to sign
+  up" OFF with the Email provider left ON. → Verify auth settings via the public
+  settings endpoint after every dashboard change.
+- Gotcha: Resend's current DNS setup uses CNAMEs (`send`, `rsend` → *.forge.rmta.net).
+  An old SPF TXT on host `send` (earlier Resend format) blocks the new CNAME —
+  a CNAME cannot coexist with other records on the same host.
+- Verified live after push: bundle points to qixpdeqjrkvfurqhzvtc, CV PDF no
+  longer publicly reachable, Vercel insights 200, console clean.
+- Correction (Commander-level): DL-005 mandates the exact model string
+  `gemini-2.5-flash`; by 2026-09 Google answers NOT_FOUND for it (2.5 models
+  restricted, current stable line is 3.x). The chatbot failed with a valid key.
+  → Pinned model strings in Commander need a review date, and the provider
+  error enum (NOT_FOUND vs PERMISSION_DENIED) must be surfaced as a machine
+  code so a dead model is distinguishable from a bad key without log access.
+- Gotcha: two DKIM TXT records (old + new) on `resend._domainkey` — adding the
+  new one without deleting the old one keeps Resend verification failing.
+- Gotcha: `nslookup -type=TXT send.<domain>` returned an SPF string even after
+  the CNAME was added — it is the TXT of the CNAME *target* (Resend's host),
+  not a leftover record. Check CNAME first before concluding a TXT conflict.
+
+## Commander Improvement Candidates (continued)
+- DL-005: replace the hard-pinned `gemini-2.5-flash` with a reviewed current
+  model and add "verify model availability at every project start" to the
+  bootstrap checklist.

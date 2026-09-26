@@ -28,7 +28,9 @@ export interface AIProvider {
 export class AIProviderError extends Error {
   constructor(
     message: string,
-    readonly code: "NOT_CONFIGURED" | "RATE_LIMITED" | "UNAVAILABLE",
+    readonly code: "NOT_CONFIGURED" | "RATE_LIMITED" | "REJECTED" | "UNAVAILABLE",
+    /** Provider's own error enum (e.g. "NOT_FOUND", "PERMISSION_DENIED") — never a message or key. */
+    readonly providerStatus?: string,
   ) {
     super(message);
     this.name = "AIProviderError";

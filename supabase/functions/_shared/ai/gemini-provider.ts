@@ -34,8 +34,11 @@ export class GeminiProvider implements AIProvider {
       // Log status + allowlisted error status only; never the key or request (E-8).
       const errorBody = (await response.json().catch(() => null)) as { error?: { status?: string } } | null;
       const detail = `Gemini HTTP ${response.status} ${errorBody?.error?.status ?? ""}`.trim();
-      if (response.status === 429) throw new AIProviderError(detail, "RATE_LIMITED");
-      throw new AIProviderError(detail, "UNAVAILABLE");
+      const providerStatus = errorBody?.error?.status?.replace(/[^A-Z_]/g, "") || undefined;
+      if (response.status === 429) throw new AIProviderError(detail, "RATE_LIMITED", providerStatus);
+      // 4xx = our request/key/model is wrong (fix config); 5xx = provider outage (wait).
+      if (response.status >= 400 && response.status < 500) throw new AIProviderError(detail, "REJECTED", providerStatus);
+      throw new AIProviderError(detail, "UNAVAILABLE", providerStatus);
     }
 
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();

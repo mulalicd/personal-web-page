@@ -70,7 +70,10 @@ Deno.serve(async (req) => {
     if (error instanceof AIProviderError) {
       logError("chat-assistant", error, { code: error.code });
       if (error.code === "RATE_LIMITED") return rateLimited(req, 60);
-      return fail(req, 503, "The assistant is temporarily unavailable. Please try again later.", "AI_UNAVAILABLE");
+      // Distinct machine codes (no provider details) so the operator can tell a
+      // missing/invalid key or model (config) from a provider outage (wait).
+      const code = error.providerStatus ? `AI_${error.code}_${error.providerStatus}` : `AI_${error.code}`;
+      return fail(req, 503, "The assistant is temporarily unavailable. Please try again later.", code);
     }
     logError("chat-assistant", error);
     return fail(req, 500, "Something went wrong. Please try again.", "INTERNAL_ERROR");
