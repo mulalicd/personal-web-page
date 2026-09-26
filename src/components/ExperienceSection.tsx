@@ -16,6 +16,14 @@ const EXPERIENCE_ICONS: Record<ExperienceIcon, LucideIcon> = {
 };
 
 const ERA_BY_ID = new Map(profile.careerEras.map((era) => [era.id, era]));
+/** Eras are numbered chronologically (profile.careerEras is oldest first). */
+const ERA_NUMERALS = ["I", "II", "III", "IV", "V"];
+
+/** Roles of an era, in the timeline's order (most recent first). */
+function eraRoles(eraId: CareerEraId) {
+  return profile.experience.filter((entry) => entry.era === eraId);
+}
+
 const ERA_TOKEN: Record<CareerEraId, string> = {
   finance: "--primary",
   industry: "--accent-purple",
@@ -90,16 +98,30 @@ export function ExperienceSection() {
               return (
                 <div key={key}>
                   {eraStarts && era && (
-                    <div className="relative mb-6 pl-16 md:pl-20">
+                    <div className={`relative pl-16 md:pl-20 ${index === 0 ? "mb-10" : "mt-16 mb-10"}`}>
+                      {/* Era waypoint on the campaign path */}
                       <span
-                        className="absolute left-3 md:left-5 top-1/2 h-6 w-6 -translate-y-1/2 rotate-45 rounded-sm border-2 border-background"
-                        style={{ backgroundColor: eraColor, boxShadow: `0 0 16px ${eraColor}` }}
+                        className="absolute left-[0.4rem] md:left-[0.9rem] top-1/2 h-9 w-9 -translate-y-1/2 rotate-45 rounded-md border-[3px] border-background"
+                        style={{ backgroundColor: eraColor, boxShadow: `0 0 0 4px hsl(var(${ERA_TOKEN[exp.era]}) / 0.2), 0 0 28px ${eraColor}` }}
                         aria-hidden="true"
                       />
-                      <p className="text-[11px] font-bold uppercase tracking-[0.22em]" style={{ color: eraColor }}>
-                        Era · {era.period}
-                      </p>
-                      <p className="text-lg font-bold text-foreground">{era.name}</p>
+                      <div
+                        className="rounded-2xl border-2 px-6 py-5 md:px-8 md:py-6"
+                        style={{
+                          borderColor: `hsl(var(${ERA_TOKEN[exp.era]}) / 0.45)`,
+                          background: `linear-gradient(100deg, hsl(var(${ERA_TOKEN[exp.era]}) / 0.14), hsl(var(${ERA_TOKEN[exp.era]}) / 0.02) 70%)`,
+                          boxShadow: `0 0 32px hsl(var(${ERA_TOKEN[exp.era]}) / 0.18)`,
+                        }}
+                      >
+                        <p className="text-xs md:text-sm font-extrabold uppercase tracking-[0.3em]" style={{ color: eraColor }}>
+                          Era {ERA_NUMERALS[profile.careerEras.findIndex((candidate) => candidate.id === era.id)]} · {era.period}
+                        </p>
+                        <h3 className="mt-1 text-2xl md:text-3xl font-extrabold text-foreground">{era.name}</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {eraRoles(era.id).length} {eraRoles(era.id).length === 1 ? "role" : "roles"} ·{" "}
+                          {eraRoles(era.id).map((role) => role.organization).join(" · ")}
+                        </p>
+                      </div>
                     </div>
                   )}
                 <motion.div
