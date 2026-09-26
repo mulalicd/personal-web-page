@@ -11,6 +11,17 @@ import { AIProviderError, type AIProvider, type ChatTurn, type GenerateOptions }
  */
 export const GEMINI_GENERATION_MODEL = "gemini-flash-latest";
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+/**
+ * Google answers 503 UNAVAILABLE / 500 while a model is overloaded — usually for
+ * a second or two (seen live 2026-09-26: 1 of 3 requests). Retry before
+ * streaming starts; nothing has reached the visitor yet, so it is invisible.
+ */
+const GEMINI_MAX_ATTEMPTS = 3;
+const GEMINI_RETRY_BASE_MS = 700;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 interface GeminiChunk {
   candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
@@ -21,18 +32,35 @@ export class GeminiProvider implements AIProvider {
 
   async *streamChat(system: string, turns: ChatTurn[], options: GenerateOptions): AsyncIterable<string> {
     const url = `${GEMINI_API_BASE}/${GEMINI_GENERATION_MODEL}:streamGenerateContent?alt=sse`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": this.apiKey },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: turns.map((turn) => ({
-          role: turn.role === "assistant" ? "model" : "user",
-          parts: [{ text: turn.content }],
-        })),
-        generationConfig: { maxOutputTokens: options.maxTokens, temperature: options.temperature },
-      }),
+    const body = JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: turns.map((turn) => ({
+        role: turn.role === "assistant" ? "model" : "user",
+        parts: [{ text: turn.content }],
+      })),
+      generationConfig: { maxOutputTokens: options.maxTokens, temperature: options.temperature },
     });
+
+    let response: Response | null = null;
+    for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
+      try {
+        response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": this.apiKey },
+          body,
+        });
+      } catch (error) {
+        if (attempt === GEMINI_MAX_ATTEMPTS) throw new AIProviderError(`Gemini network error: ${String(error)}`, "UNAVAILABLE");
+        await sleep(GEMINI_RETRY_BASE_MS * attempt);
+        continue;
+      }
+      const transient = response.status >= 500 || response.status === 429;
+      if (!transient || attempt === GEMINI_MAX_ATTEMPTS) break;
+      await response.body?.cancel();
+      console.warn(JSON.stringify({ level: "warn", location: "GeminiProvider", status: response.status, attempt }));
+      await sleep(GEMINI_RETRY_BASE_MS * attempt);
+    }
+    if (!response) throw new AIProviderError("Gemini: no response", "UNAVAILABLE");
 
     if (!response.ok || !response.body) {
       // Log status + allowlisted error status only; never the key or request (E-8).

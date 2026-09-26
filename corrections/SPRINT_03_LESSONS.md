@@ -25,3 +25,12 @@ Date: 2026-09-26
 - For gamification on professional sites: every badge, trophy and number must
   map to a sourced fact (P-2 style rule) — worth a general Commander rule for
   "no invented scores or self-ratings".
+
+### 2026-09-26 — Chatbot intermittent failure
+- Gotcha: `gemini-flash-latest` returned 503 UNAVAILABLE on ~1 of 3 requests
+  (Google-side overload). Added up to 3 attempts with backoff before streaming
+  starts — invisible to the visitor. → Every AI provider call needs a retry on
+  transient 5xx/429 (Commander A-5 candidate).
+- Gotcha: the Director opened an old immutable Vercel deployment URL
+  (`…-7ps7c5f6v-…` = first Sprint 01 deploy) and saw "the old site". Always
+  point to the production domain; per-deployment URLs are frozen snapshots.
