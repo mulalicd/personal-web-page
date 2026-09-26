@@ -6,6 +6,13 @@
     <meta name="theme-color" content="#1a6fbf" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="color-scheme" content="light dark" />
+    <!-- Apply the visitor's theme before first paint (the homepage is prerendered in light) -->
+    <script>
+      try {
+        var t = localStorage.getItem("theme");
+        if (t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches) document.documentElement.classList.add("dark");
+      } catch (e) {}
+    </script>
     <!-- Inter for every OS (Windows/macOS/Android/iOS would otherwise fall back to different system fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

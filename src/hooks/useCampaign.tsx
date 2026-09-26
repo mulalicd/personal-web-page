@@ -67,13 +67,15 @@ function initialEffects(): boolean {
 
 /** Provides campaign state to the homepage. */
 export function CampaignProvider({ children }: { children: ReactNode }) {
-  const [visited, setVisited] = useState<Set<string>>(initialVisited);
+  // Browser-only values are read after mount so the prerendered HTML and the
+  // first client render match (Sprint 04 hydration).
+  const [visited, setVisited] = useState<Set<string>>(() => new Set());
   const [current, setCurrent] = useState<Chapter | null>(null);
   const [banner, setBanner] = useState<Chapter | null>(null);
   const [celebrating, setCelebrating] = useState(false);
-  const [effectsEnabled, setEffectsState] = useState<boolean>(initialEffects);
+  const [effectsEnabled, setEffectsState] = useState<boolean>(true);
   const bannerTimer = useRef<number | null>(null);
-  const alreadyCompleted = useRef(readStorage(STORAGE_COMPLETED) === "yes");
+  const alreadyCompleted = useRef(false);
   // Mirror of `visited` so side effects never run inside a state updater.
   const visitedRef = useRef(visited);
 
@@ -102,6 +104,16 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
     },
     [effectsEnabled],
   );
+
+  // Must stay above the observer effect: stored progress is loaded before the
+  // first chapter is entered, so it is never overwritten.
+  useEffect(() => {
+    const stored = initialVisited();
+    visitedRef.current = stored;
+    setVisited(stored);
+    alreadyCompleted.current = readStorage(STORAGE_COMPLETED) === "yes";
+    setEffectsState(initialEffects());
+  }, []);
 
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") return;

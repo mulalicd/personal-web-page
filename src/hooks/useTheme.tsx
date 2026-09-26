@@ -7,24 +7,39 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
+/** Stored choice, else the OS setting. Same rule as the inline script in index.html. */
+function preferredDark(): boolean {
+  try {
     const stored = localStorage.getItem("theme");
     if (stored) return stored === "dark";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
+  } catch {
+    // Storage blocked: fall back to the OS setting.
+  }
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  // Starts as the prerendered value (light) so hydration matches; the real
+  // preference is read after mount. The inline script in index.html has
+  // already applied the `dark` class, so there is no visible flash.
+  const [isDark, setIsDark] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    setIsDark(preferredDark());
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
     const root = document.documentElement;
-    if (isDark) {
-      root.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      root.classList.remove("dark");
-      localStorage.setItem("theme", "light");
+    root.classList.toggle("dark", isDark);
+    try {
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    } catch {
+      // Storage blocked: the choice lasts for this visit only.
     }
-  }, [isDark]);
+  }, [isDark, ready]);
 
   const toggle = () => {
     const root = document.documentElement;

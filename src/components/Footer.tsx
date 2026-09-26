@@ -71,7 +71,8 @@ export function Footer() {
 
         {/* Divider & Copyright */}
         <div className="border-t border-background/10 dark:border-border pt-8">
-          <p className="text-background/60 dark:text-muted-foreground text-sm text-center">
+          {/* The year can differ between build time and the visit: allowed during hydration. */}
+          <p className="text-background/60 dark:text-muted-foreground text-sm text-center" suppressHydrationWarning>
             © {new Date().getFullYear()} {profile.name}. All rights reserved.
           </p>
         </div>

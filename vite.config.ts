@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig(() => ({
+export default defineConfig(({ isSsrBuild }) => ({
   server: {
     host: "::",
     port: 8080,
@@ -13,8 +13,9 @@ export default defineConfig(() => ({
     rollupOptions: {
       output: {
         // Long-lived vendor chunks: they change rarely, so browsers keep them cached
-        // across site updates and the homepage chunk stays small.
-        manualChunks: {
+        // across site updates and the homepage chunk stays small. Client build only —
+        // the prerender (SSR) build keeps dependencies external.
+        manualChunks: isSsrBuild ? undefined : {
           react: ["react", "react-dom", "react-router-dom"],
           motion: ["framer-motion"],
           radix: ["@radix-ui/react-dialog", "@radix-ui/react-tabs", "@radix-ui/react-toast", "@radix-ui/react-tooltip"],
