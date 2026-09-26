@@ -1,5 +1,5 @@
 # SPRINT 01 — Foundation: working backend, zero known errors, exact content
-Status: **DONE — deployed to production 2026-09-26** (only test-data cleanup pending a CLI login)
+Status: **DONE — deployed to production 2026-09-26, test data cleaned**
 Created: 2026-09-26 · Commander v1.5.4 · FULL mode
 
 Goal: after this sprint every existing feature works on the Director's own
@@ -189,8 +189,8 @@ New rules suggested by this sprint:     see corrections/SPRINT_01_LESSONS.md
 | Sign-up disabled, email provider on | ✅ `/auth/v1/settings` |
 | Resend domain ai-studio.wiki | ✅ Verified |
 
-Test data to delete (needs `supabase login`): cv_requests "Test Claude"
-(mulalic71@gmail.com), related email_send_metrics and rate_limits rows.
+Test data deleted 2026-09-26: cv_requests "Test Claude" (mulalic71@gmail.com),
+all email_send_metrics and rate_limits rows (tables verified empty).
 The admin_audit_log entry of the test approval stays — the audit log is
 append-only by design (A-10).
 
