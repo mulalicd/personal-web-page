@@ -21,3 +21,4 @@
 - 2026-09-26 [CONTENT] `awards` replaced by `trophies` (+ 220% enrollment trophy) and `ventures`; chatbot knowledge updated
 - 2026-09-26 [PERF] Stress test: homepage no longer downloads supabase-js (−181 KB), non-blocking Inter font, preloaded hero portrait (LCP), three.js scene and 60 portfolio cards render after first paint, responsive portfolio images; desktop Lighthouse 79 → 91
 - 2026-09-26 [FIX] Stress test: back-to-back "Chapter unlocked" banners no longer render side by side on fast scroll
+- 2026-09-26 [PERF] Sprint 04 prerender published and rolled back the same day: mobile Lighthouse fell 58 → 33–45 (see SPRINT_04_LESSONS)
