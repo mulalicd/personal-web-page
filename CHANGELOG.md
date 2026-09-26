@@ -15,3 +15,5 @@
 - 2026-09-26 [ANALYTICS] Vercel Web Analytics replaces the localStorage-only analytics tab
 - 2026-09-26 [ENV] VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY point to the new project; secrets GEMINI_API_KEY_1, RESEND_API_KEY, EMAIL_FROM
 - 2026-09-26 [QUALITY] TypeScript strict mode, zero type errors, zero lint errors
+- 2026-09-26 [FEATURE] Sprint 02: "Executive Presence" hero — three.js career orbits (3 eras, 8 real employers) with depth-masked portrait, intro sequence, parallax, hover labels, reduced-motion still frame; 2D globe removed
+- 2026-09-26 [DEPS] three.js added (PDL-004)

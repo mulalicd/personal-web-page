@@ -22,6 +22,16 @@ export interface HeadlineMetric extends Metric {
   color: AccentColor;
 }
 
+/** Career era used by the hero "Executive Presence" orbits (Director decision 2026-09-26). */
+export type CareerEraId = "finance" | "industry" | "education";
+
+export interface CareerEra {
+  id: CareerEraId;
+  name: string;
+  period: string;
+  color: AccentColor;
+}
+
 /** Identifier of an icon rendered by the UI layer (kept as a string so this module stays React-free). */
 export type ExperienceIcon = "building" | "trending" | "briefcase" | "landmark" | "heart";
 
@@ -31,6 +41,7 @@ export interface ExperienceEntry {
   location: string;
   period: string;
   icon: ExperienceIcon;
+  era: CareerEraId;
   achievements: string[];
   metrics: Metric[];
   technologies?: string[];
@@ -123,6 +134,7 @@ export interface Profile {
   websiteUrl: string;
   industries: string[];
   heroMetrics: HeadlineMetric[];
+  careerEras: CareerEra[];
   aboutParagraphs: string[];
   aboutMetrics: HeadlineMetric[];
   competencies: string[];

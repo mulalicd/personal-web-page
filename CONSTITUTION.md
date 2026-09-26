@@ -55,6 +55,8 @@ anything not approved — ask first (Director instruction, 2026-09-26).
 | 2026-09-26 | Hero animation | "Executive Presence" (three.js / WebGL) approved |
 | 2026-09-26 | Gamification | AAA-level, across the whole site |
 | 2026-09-26 | Tracked zip with `.env` | Delete from the repository |
+| 2026-09-26 | Career eras (hero orbits) | Three eras as proposed: Finance & Operations (1997–2013: USAID/KPMG, Hospitalija, LOK), Industry & Global Business (2013–2020: D.I.K., Xylon, Blue Trade, Bisnode), Education & AI Leadership (2020–today: IDSS & IMH). English names were proposed by the ACA and accepted with the division (not separately confirmed) |
+| 2026-09-26 | Chatbot model | `gemini-flash-latest` (PDL-005) |
 
 ---
 

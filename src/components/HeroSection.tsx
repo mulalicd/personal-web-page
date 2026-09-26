@@ -1,15 +1,19 @@
 import { motion } from "framer-motion";
+import { lazy, Suspense, useRef } from "react";
 import { ArrowRight, Download, Linkedin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CVRequestDialog } from "@/components/CVRequestDialog";
 import davorProfile from "@/assets/davor-profile-real.webp";
-import { HeroGlobe } from "@/components/HeroGlobe";
 import { MetricBarGroup } from "@/components/MetricBar3D";
 import { track } from "@/lib/analytics";
 import { profile } from "@/content/profile";
 
 /** Above-the-fold introduction: name, role, industries, CTAs and headline metrics. */
+// three.js is ~150 KB gzipped: load the scene after the first paint (Sprint 02).
+const ExecutivePresence = lazy(() => import("@/components/executive-presence/ExecutivePresence"));
+
 export function HeroSection() {
+  const portraitRef = useRef<HTMLDivElement>(null);
   return (
     <section
       id="home"
@@ -157,16 +161,15 @@ export function HeroSection() {
             className="order-1 lg:order-2 flex flex-col items-center"
           >
             <div className="relative mb-8">
-              {/* 3D Globe behind the profile image */}
-              <div className="absolute -inset-16 md:-inset-20 lg:-inset-24">
-                <HeroGlobe />
-              </div>
               {/* Decorative elements */}
               <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent rounded-full blur-2xl" />
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-full" />
               
               {/* Image container */}
-              <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden border-4 border-card shadow-xl">
+              <div
+                ref={portraitRef}
+                className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden border-4 border-card shadow-xl"
+              >
               <img
                   src={davorProfile}
                   alt={`${profile.name} — ${profile.headline}`}
@@ -177,6 +180,30 @@ export function HeroSection() {
                   height={384}
                 />
               </div>
+
+              {/* "Executive Presence": career orbits rendered ABOVE the portrait;
+                  a depth mask hides their far side behind it. */}
+              <div className="absolute -inset-16 md:-inset-20 lg:-inset-24 z-10">
+                <Suspense fallback={null}>
+                  <ExecutivePresence portraitRef={portraitRef} />
+                </Suspense>
+              </div>
+            </div>
+
+            {/* Text equivalent of the orbits for screen readers */}
+            <div className="sr-only">
+              <h2>Career eras</h2>
+              <ul>
+                {profile.careerEras.map((era) => (
+                  <li key={era.id}>
+                    {era.name} ({era.period}):{" "}
+                    {profile.experience
+                      .filter((entry) => entry.era === era.id)
+                      .map((entry) => entry.organization)
+                      .join(", ")}
+                  </li>
+                ))}
+              </ul>
             </div>
 
             {/* 3D Metric Bars */}

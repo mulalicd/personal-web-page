@@ -49,6 +49,13 @@ export const profile: Profile = {
     { value: "€11M+", label: "Contracts Secured", barPercentage: 75, color: "amber" },
   ],
 
+  // Director decision 2026-09-26 (Sprint 02): three eras, one orbit each in the hero.
+  careerEras: [
+    { id: "finance", name: "Finance & Operations", period: "1997 – 2013", color: "primary" },
+    { id: "industry", name: "Industry & Global Business", period: "2013 – 2020", color: "purple" },
+    { id: "education", name: "Education & AI Leadership", period: "2020 – today", color: "accent" },
+  ],
+
   aboutParagraphs: [
     "Executive Leader and expert in AI Strategy and Digital Transformation with over 25 years of experience " +
       "driving growth, innovation, and operational excellence. In my roles as CEO and Managing Director, I have a " +
@@ -194,6 +201,7 @@ export const profile: Profile = {
       location: "Sarajevo, Bosnia and Herzegovina",
       period: "Jul 2020 – Present",
       icon: "building",
+      era: "education",
       current: true,
       achievements: [
         "Led operational management for IDSS and IMH, aligning Thuringia and Baden-Württemberg curricula through AI-supported performance tracking",
@@ -218,6 +226,7 @@ export const profile: Profile = {
       location: "Bosnia and Herzegovina / Sweden",
       period: "Jul 2019 – Jul 2020",
       icon: "trending",
+      era: "industry",
       achievements: [
         "Advised 80+ companies on commercial strategies, driving a 25% average revenue increase across the client portfolio",
         "Built and coached a high-performing sales team of 6, boosting efficiency by 40% and client acquisition by 30%",
@@ -237,6 +246,7 @@ export const profile: Profile = {
       location: "Bosnia and Herzegovina / Belgium",
       period: "Feb 2018 – Jul 2019",
       icon: "briefcase",
+      era: "industry",
       achievements: [
         "Formulated and implemented strategic business plans for three divisions — Temax® (construction materials), Nitta Trans (time-temperature sensitive transport) and Vivit Bio Line (bottled water) — driving €394,000 in net profit (+673%) over 18 months",
         "Delivered market analysis and strategic insights that directly influenced a 15% expansion in regional market share",
@@ -258,6 +268,7 @@ export const profile: Profile = {
       location: "Bosnia and Herzegovina / UK",
       period: "Apr 2015 – Feb 2018",
       icon: "building",
+      era: "industry",
       achievements: [
         "Directed corporate strategy aligned with board directives, growing operating income from €12M to €16M (+33%) in one year",
         "Managed and coached a cross-functional team of over 190 employees across seven departments, improving productivity by 35%",
@@ -279,6 +290,7 @@ export const profile: Profile = {
       location: "Nigeria — Abuja HQ, Warri, Port Harcourt, Calabar",
       period: "Jan 2013 – Apr 2015",
       icon: "trending",
+      era: "industry",
       achievements: [
         "Streamlined organizational strategy, resulting in a 32% increase in annual revenue to €10M",
         "Enhanced HR practices, improving employee retention by 20% and building a high-performing culture",
@@ -298,6 +310,7 @@ export const profile: Profile = {
       location: "Bosnia and Herzegovina",
       period: "Apr 2007 – Jan 2013",
       icon: "landmark",
+      era: "finance",
       achievements: [
         "Directed operations for 16 regional offices, expanding the portfolio by 300% (€3M → €12M) and the client base by 364% (1,400 → 6,500)",
         "Expanded operations by establishing 12 new offices and recruiting 33 credit officers within two years",
@@ -317,6 +330,7 @@ export const profile: Profile = {
       location: "Bosnia and Herzegovina / Croatia",
       period: "Dec 2003 – Apr 2007",
       icon: "heart",
+      era: "finance",
       achievements: [
         "Established operational systems, achieving €2M annual revenue within three years from inception",
         "Designed strategic business plans, increasing operational efficiency by 35% and reducing overhead costs by 20%",
@@ -337,6 +351,7 @@ export const profile: Profile = {
       location: "Bosnia and Herzegovina",
       period: "Mar 1997 – Dec 2003",
       icon: "landmark",
+      era: "finance",
       achievements: [
         "Directed the Operations Unit and a team of 6 Operations Assistants, achieving a 25% improvement in efficiency",
         "Managed credit and loan approvals, disbursing €10M+ in funds with a 98% timeliness rate",

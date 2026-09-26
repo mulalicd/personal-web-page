@@ -1,5 +1,5 @@
 # SPRINT 02 — "Executive Presence" hero (AAA-quality animation)
-Status: **PROPOSED — awaiting Director approval**
+Status: **IMPLEMENTED — awaiting Director visual review on a preview URL** (approved 2026-09-26)
 Created: 2026-09-26 · Commander v1.5.4 · FULL mode · Decision: PDL-004
 
 Goal: replace the 2D canvas globe behind the portrait with a cinematic,
@@ -45,3 +45,42 @@ honest (every element maps to real data in `src/content/profile.ts`).
 ## DONE CRITERIA
 DONE_CHECKLIST + measured frame rate and bundle delta recorded in the handoff;
 visual review by the Director on the production URL (desktop + phone).
+
+
+---
+
+## PROGRESS (2026-09-26)
+
+| # | Item | Status |
+|---|---|---|
+| 1 | Scene: 3 orbits, 8 employer nodes, rim light, dust | ✅ `src/components/executive-presence/scene.ts` |
+| 2 | Intro sequence (≈2 s) | ✅ |
+| 3 | Parallax + hover/tap labels that follow the node | ✅ |
+| 4 | Lazy-loaded, pauses off-screen / hidden tab, pixel ratio ≤ 2 | ✅ chunk 136 KB gzipped (budget 150 KB); homepage chunk unchanged (84.6 KB gz) |
+| 5 | Reduced motion → still frame; no WebGL → plain portrait; screen-reader list of eras | ✅ |
+| 6 | 2D globe with decorative cities removed | ✅ |
+
+Verification: headless Chrome via CDP (desktop 1440×900 dark/light, phone
+390×844) — orbits pass behind the head and in front of the body, nodes
+visible, hover label correct (Xylon Corporation Ltd. · Apr 2015 – Feb 2018).
+**Not measured:** real-GPU frame rate — the test browsers throttle
+requestAnimationFrame. Director's visual review on real hardware is the
+remaining acceptance step.
+
+## HANDOFF NOTE — Sprint 02
+Completed: Executive Presence hero scene, era data in profile.ts (`careerEras`,
+`experience[].era`), accessible text equivalent, old globe removed.
+Not completed: real-device fps measurement; Director's visual sign-off.
+Open risks: very old GPUs fall back to the plain portrait only if WebGL is
+missing entirely — slow-but-present WebGL runs the full scene.
+Technical debt: none new.
+Next sprint: Sprint 03 — site-wide AAA gamification (proposal to follow).
+
+COMMANDER COMPLIANCE — Sprint 02
+──────────────────────────────────
+Rules followed without reminder:        all applicable
+Rules violated, caught by ACA:          1 (first build crossed orbits over the
+                                           face — caught in visual review)
+Rules violated, caught by Director:     0
+Rules that slowed work or felt wrong:   none
+New rules suggested by this sprint:     see corrections/SPRINT_02_LESSONS.md
