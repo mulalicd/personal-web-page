@@ -74,9 +74,16 @@ const CORE_TUBE_PX = 1.1;
 const GLOW_TUBE_PX = 5;
 const TORUS_RADIAL_SEGMENTS = 8;
 const TORUS_TUBULAR_SEGMENTS = 256;
-const NODE_RADIUS_PX = 4.6;
-const NODE_HALO_PX = 44;
-const NODE_HIT_RADIUS_PX = 15;
+const NODE_RADIUS_PX = 7;
+const NODE_HALO_PX = 70;
+/** 4-point light flare around each node. */
+const NODE_FLARE_PX = 54;
+const NODE_FLARE_SPIN = 0.35;
+/** Expanding "signal" pulse: starts at the node size, grows ×PULSE_GROWTH while fading. */
+const NODE_PULSE_PX = 18;
+const NODE_PULSE_GROWTH = 3.2;
+const NODE_PULSE_PERIOD_S = 2.6;
+const NODE_HIT_RADIUS_PX = 22;
 const DUST_COUNT = 140;
 const DUST_SIZE_PX = 2;
 const RIM_GLOW_SCALE = 2.7;
@@ -141,6 +148,53 @@ function radialTexture(): THREE.CanvasTexture {
   return texture;
 }
 
+/** Thin glowing circle outline for the node pulse. */
+function ringTexture(): THREE.CanvasTexture {
+  const size = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+  if (context) {
+    context.strokeStyle = "rgba(255,255,255,1)";
+    context.shadowColor = "rgba(255,255,255,1)";
+    context.shadowBlur = 10;
+    context.lineWidth = 5;
+    context.beginPath();
+    context.arc(size / 2, size / 2, size / 2 - 14, 0, Math.PI * 2);
+    context.stroke();
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+/** Four-point star flare (two soft light streaks crossing). */
+function flareTexture(): THREE.CanvasTexture {
+  const size = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+  if (context) {
+    const c = size / 2;
+    for (const horizontal of [true, false]) {
+      const gradient = horizontal
+        ? context.createLinearGradient(0, c, size, c)
+        : context.createLinearGradient(c, 0, c, size);
+      gradient.addColorStop(0, "rgba(255,255,255,0)");
+      gradient.addColorStop(0.5, "rgba(255,255,255,1)");
+      gradient.addColorStop(1, "rgba(255,255,255,0)");
+      context.fillStyle = gradient;
+      if (horizontal) context.fillRect(0, c - 1.5, size, 3);
+      else context.fillRect(c - 1.5, 0, 3, size);
+    }
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
 interface Orbit {
   era: OrbitEra;
   tilt: THREE.Group;
@@ -157,6 +211,8 @@ interface NodeVisual {
   anchor: THREE.Group;
   dot: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial>;
   halo: THREE.Sprite;
+  flare: THREE.Sprite;
+  pulse: THREE.Sprite;
   hit: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial>;
   igniteAt: number;
   phase: number;
@@ -174,6 +230,8 @@ export class ExecutivePresenceScene {
   private readonly rimGlow: THREE.Sprite;
   private readonly dust: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>;
   private readonly texture = radialTexture();
+  private readonly ringMap = ringTexture();
+  private readonly flareMap = flareTexture();
   private readonly raycaster = new THREE.Raycaster();
   private readonly orbits: Orbit[] = [];
   private readonly nodes: NodeVisual[] = [];
@@ -302,9 +360,13 @@ export class ExecutivePresenceScene {
     }
     for (const node of this.nodes) {
       const color = eraColor.get(node.data.era) ?? new THREE.Color();
-      node.dot.material.color.copy(color).lerp(new THREE.Color(0xffffff), dark ? 0.45 : 0.1);
-      (node.halo.material as THREE.SpriteMaterial).color.copy(color);
-      (node.halo.material as THREE.SpriteMaterial).blending = blending;
+      // White-hot core on dark; saturated core on light so it still pops on white.
+      node.dot.material.color.copy(color).lerp(new THREE.Color(0xffffff), dark ? 0.7 : 0.05);
+      for (const sprite of [node.halo, node.flare, node.pulse]) {
+        (sprite.material as THREE.SpriteMaterial).color.copy(color);
+        (sprite.material as THREE.SpriteMaterial).blending = blending;
+      }
+      (node.flare.material as THREE.SpriteMaterial).color.lerp(new THREE.Color(0xffffff), dark ? 0.5 : 0);
     }
     const rimColor = tokenColor(TOKEN_FOR_COLOR.primary);
     (this.rimGlow.material as THREE.SpriteMaterial).color.copy(rimColor);
@@ -330,6 +392,8 @@ export class ExecutivePresenceScene {
       }
     });
     this.texture.dispose();
+    this.ringMap.dispose();
+    this.flareMap.dispose();
     this.renderer.dispose();
   }
 
@@ -366,12 +430,19 @@ export class ExecutivePresenceScene {
           new THREE.SpriteMaterial({ map: this.texture, transparent: true, depthWrite: false, opacity: 0 }),
         );
         halo.scale.setScalar(NODE_HALO_PX);
+        const flare = new THREE.Sprite(
+          new THREE.SpriteMaterial({ map: this.flareMap, transparent: true, depthWrite: false, opacity: 0 }),
+        );
+        flare.scale.setScalar(NODE_FLARE_PX);
+        const pulse = new THREE.Sprite(
+          new THREE.SpriteMaterial({ map: this.ringMap, transparent: true, depthWrite: false, opacity: 0 }),
+        );
         // Invisible, larger sphere so the node is easy to hover or tap.
         const hit = new THREE.Mesh(
           new THREE.SphereGeometry(NODE_HIT_RADIUS_PX, 8, 6),
           new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, opacity: 0 }),
         );
-        anchor.add(halo, dot, hit);
+        anchor.add(halo, pulse, flare, dot, hit);
         spinner.add(anchor);
         const order = chronological.indexOf(data);
         this.nodes.push({
@@ -380,6 +451,8 @@ export class ExecutivePresenceScene {
           anchor,
           dot,
           halo,
+          flare,
+          pulse,
           hit,
           igniteAt: INTRO_NODE_DELAY + order * INTRO_NODE_STAGGER,
           phase: order * 0.9,
@@ -452,9 +525,18 @@ export class ExecutivePresenceScene {
       const pop = ignite <= 0 ? 0 : easeOutBack(ignite);
       const pulse = 0.85 + 0.15 * Math.sin(t * 1.6 + node.phase);
       const emphasis = node === this.hovered ? 1.6 : 1;
+      const visible = Math.min(Math.max(ignite, 0), 1);
       node.dot.scale.setScalar(Math.max(pop, 0.0001) * emphasis);
-      node.dot.material.opacity = Math.min(Math.max(ignite, 0), 1);
-      (node.halo.material as THREE.SpriteMaterial).opacity = Math.min(Math.max(ignite, 0), 1) * 0.7 * pulse * emphasis;
+      node.dot.material.opacity = visible;
+      (node.halo.material as THREE.SpriteMaterial).opacity = visible * 0.85 * pulse * Math.min(emphasis, 1.2);
+      node.halo.scale.setScalar(NODE_HALO_PX * (0.9 + 0.1 * pulse) * emphasis);
+      (node.flare.material as THREE.SpriteMaterial).opacity = visible * 0.75 * pulse;
+      (node.flare.material as THREE.SpriteMaterial).rotation = t * NODE_FLARE_SPIN + node.phase;
+      node.flare.scale.setScalar(NODE_FLARE_PX * Math.max(pop, 0.0001) * emphasis);
+      // Signal pulse: expands and fades, staggered per node.
+      const cycle = ((t + node.phase) % NODE_PULSE_PERIOD_S) / NODE_PULSE_PERIOD_S;
+      node.pulse.scale.setScalar(NODE_PULSE_PX * (1 + cycle * (NODE_PULSE_GROWTH - 1)));
+      (node.pulse.material as THREE.SpriteMaterial).opacity = visible * (1 - cycle) * 0.8;
     }
 
     if (this.hovered) this.reportHover(this.hovered);
