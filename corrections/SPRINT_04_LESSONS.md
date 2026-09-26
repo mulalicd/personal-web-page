@@ -31,6 +31,12 @@
   hydrating 2,000+ prerendered nodes added TBT. Reverted as promised.
   → Measure a prerender prototype on production-like HTTPS before claiming a
   gain; if retried, prerender only the hero/navigation and keep the HTML small.
+- Correction (same day): after the rollback the OLD version scored 37–38 on
+  the same machine (earlier 58). Local Lighthouse runs against production vary
+  ±20 points, so "worse" was NOT proven — both versions fall inside the noise.
+  → Never decide on fewer than 5 interleaved runs per variant, or use
+  PageSpeed Insights (Google-side, stable; the anonymous daily API quota was
+  exhausted, the Director can run pagespeed.web.dev in a browser).
 
 ## Commander Improvement Candidates
 - For SPA → prerender work: add a checklist item "every browser-only read
