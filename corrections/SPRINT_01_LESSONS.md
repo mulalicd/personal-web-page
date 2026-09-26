@@ -105,3 +105,9 @@ Date: 2026-09-26
 - DL-005: replace the hard-pinned `gemini-2.5-flash` with a reviewed current
   model and add "verify model availability at every project start" to the
   bootstrap checklist.
+- Gotcha: the Supabase CLI login expired three times in one day (401 after a
+  few hours). Batch all CLI-dependent work right after a fresh `supabase login`
+  and plan test-data cleanup in the same window as the test itself.
+- Correction (mine): first live test used names with digits and parentheses
+  ("Sprint 01 Test (Claude)") — correctly rejected by the name validator.
+  → Test data must satisfy the same business rules as real data.

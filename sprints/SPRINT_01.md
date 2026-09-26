@@ -1,5 +1,5 @@
 # SPRINT 01 — Foundation: working backend, zero known errors, exact content
-Status: **IMPLEMENTED — awaiting Director setup steps and approval to deploy** (approved 2026-09-26)
+Status: **DONE — deployed to production 2026-09-26** (only test-data cleanup pending a CLI login)
 Created: 2026-09-26 · Commander v1.5.4 · FULL mode
 
 Goal: after this sprint every existing feature works on the Director's own
@@ -168,3 +168,36 @@ Rules violated, caught by Director:     1 (M-4/M-10: claimed "4th book missing"
                                            without reading AISBPSection)
 Rules that slowed work or felt wrong:   none
 New rules suggested by this sprint:     see corrections/SPRINT_01_LESSONS.md
+
+
+---
+
+## POST-DEPLOY VERIFICATION (production, 2026-09-26)
+
+| Check | Result |
+|---|---|
+| Production URL loads, new bundle, points to qixpdeqjrkvfurqhzvtc | ✅ |
+| Browser console on production (error level) | ✅ clean |
+| Vercel env vars present (URL + publishable key) | ✅ (set by Director) |
+| Vercel Web Analytics (`/_vercel/insights`) | ✅ 200 |
+| CV PDF not publicly reachable | ✅ `/Davor_Mulalic_CV.pdf` serves the SPA, not the file |
+| Chatbot (gemini-flash-latest): EN, BS, refusal to invent | ✅ |
+| Contact form → email to mulalic.davor@outlook.com | ✅ Director confirmed receipt |
+| CV request → admin notification | ✅ Director confirmed receipt |
+| Admin sign-in + Approve → requester email with personal link | ✅ Director confirmed |
+| Personal link → signed download of the CV | ✅ Director confirmed |
+| Sign-up disabled, email provider on | ✅ `/auth/v1/settings` |
+| Resend domain ai-studio.wiki | ✅ Verified |
+
+Test data to delete (needs `supabase login`): cv_requests "Test Claude"
+(mulalic71@gmail.com), related email_send_metrics and rate_limits rows.
+The admin_audit_log entry of the test approval stays — the audit log is
+append-only by design (A-10).
+
+DONE_CHECKLIST: Code quality ✅ · Architecture ✅ (repository layer = Edge
+Functions + shared modules, PDL-001) · Security ✅ (RLS deny-by-default, IDOR n/a
+— token/ID lookups server-side, no secrets in VITE_, CORS allowlist, rate
+limits) · Error handling ✅ · UX ✅ (loading/error/empty states, mobile) ·
+Documentation ✅ · Build ✅ · Post-deploy ✅ · Lessons ✅.
+`npm install --omit=dev && npm run start`: N/A — static SPA, no production
+start script (Vercel serves `dist/`).
