@@ -28,7 +28,7 @@ export function TestimonialsSection() {
           initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="max-w-4xl mx-auto"
+          className="max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto"
         >
           {/* Section Header */}
           <div className="text-center mb-12">

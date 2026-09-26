@@ -165,7 +165,7 @@ export const PortfolioSection = () => {
               </span>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               <AnimatePresence mode="popLayout">
                 {filteredApps.map((app) => (
                   <motion.div
@@ -187,7 +187,7 @@ export const PortfolioSection = () => {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           loading="lazy"
                         />
-                        <div className="absolute top-2 right-2 px-2 py-0.5 bg-card/90 backdrop-blur-sm rounded-md text-[10px] font-medium text-primary border border-border/50">
+                        <div className="absolute top-2 right-2 px-2 py-0.5 bg-card/90 backdrop-blur-sm rounded-md text-[0.625rem] font-medium text-primary border border-border/50">
                           {app.industry}
                         </div>
                       </div>
@@ -202,12 +202,12 @@ export const PortfolioSection = () => {
                         <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2">{app.solution}</p>
                         <div className="flex flex-wrap gap-1 mt-2">
                           {app.techStack.slice(0, 3).map((tech) => (
-                            <span key={tech} className="px-1.5 py-0.5 bg-muted rounded text-[9px] font-medium text-muted-foreground">
+                            <span key={tech} className="px-1.5 py-0.5 bg-muted rounded text-[0.5625rem] font-medium text-muted-foreground">
                               {tech}
                             </span>
                           ))}
                           {app.techStack.length > 3 && (
-                            <span className="px-1.5 py-0.5 text-[9px] text-muted-foreground">
+                            <span className="px-1.5 py-0.5 text-[0.5625rem] text-muted-foreground">
                               +{app.techStack.length - 3}
                             </span>
                           )}
@@ -232,7 +232,7 @@ export const PortfolioSection = () => {
               </span>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               <AnimatePresence mode="popLayout">
                 {filteredPrompts.map((prompt) => (
                   <motion.div
@@ -254,7 +254,7 @@ export const PortfolioSection = () => {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           loading="lazy"
                         />
-                        <div className="absolute top-2 right-2 px-2 py-0.5 bg-card/90 backdrop-blur-sm rounded-md text-[10px] font-medium text-accent border border-border/50">
+                        <div className="absolute top-2 right-2 px-2 py-0.5 bg-card/90 backdrop-blur-sm rounded-md text-[0.625rem] font-medium text-accent border border-border/50">
                           {prompt.industry}
                         </div>
                       </div>
@@ -266,12 +266,12 @@ export const PortfolioSection = () => {
                         <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{prompt.description}</p>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {prompt.techStack.slice(0, 3).map((tech) => (
-                            <span key={tech} className="px-1.5 py-0.5 bg-muted rounded text-[9px] font-medium text-muted-foreground">
+                            <span key={tech} className="px-1.5 py-0.5 bg-muted rounded text-[0.5625rem] font-medium text-muted-foreground">
                               {tech}
                             </span>
                           ))}
                           {prompt.techStack.length > 3 && (
-                            <span className="px-1.5 py-0.5 text-[9px] text-muted-foreground">
+                            <span className="px-1.5 py-0.5 text-[0.5625rem] text-muted-foreground">
                               +{prompt.techStack.length - 3}
                             </span>
                           )}

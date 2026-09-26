@@ -152,7 +152,7 @@ export function MetricBar3D({ metric, delay = 0 }: MetricBar3DProps) {
         transition={{ delay: delay + 0.5, duration: 0.4 }}
         className="text-center mt-2 h-10 flex flex-col justify-start"
       >
-        <div className="text-[11px] text-muted-foreground leading-tight">
+        <div className="text-[0.6875rem] text-muted-foreground leading-tight">
           {label}
         </div>
       </motion.div>

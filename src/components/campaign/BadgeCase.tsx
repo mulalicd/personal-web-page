@@ -32,12 +32,12 @@ export function BadgeCase() {
             <span aria-hidden="true">🚀</span>
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--rarity-legendary))]">
+            <span className="block text-[0.625rem] font-bold uppercase tracking-[0.2em] text-[hsl(var(--rarity-legendary))]">
               Founder badge · {venture.role}
             </span>
             <span className="block text-base font-bold text-foreground">{venture.name}</span>
             <span className="block text-xs text-muted-foreground">{venture.tagline}</span>
-            <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">{venture.description}</span>
+            <span className="mt-1 block text-[0.6875rem] leading-snug text-muted-foreground">{venture.description}</span>
           </span>
           <ExternalLink className="h-4 w-4 flex-shrink-0 text-muted-foreground" aria-hidden="true" />
           <span className="sr-only">(opens in a new tab)</span>
@@ -71,14 +71,14 @@ function MedalRow({ title, tone, items }: { title: string; tone: "gold" | "silve
             className="flex items-center gap-2 rounded-xl border border-border bg-background p-2"
           >
             <span
-              className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[9px] font-extrabold text-white ${medal}`}
+              className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[0.5625rem] font-extrabold text-white ${medal}`}
               aria-hidden="true"
             >
               {item.name.replace(/[^A-Z0-9]/g, "").slice(0, 3) || "★"}
             </span>
             <span className="min-w-0">
-              <span className="block text-[11px] font-semibold leading-tight text-foreground">{item.name}</span>
-              <span className="block text-[10px] leading-tight text-muted-foreground">{item.detail}</span>
+              <span className="block text-[0.6875rem] font-semibold leading-tight text-foreground">{item.name}</span>
+              <span className="block text-[0.625rem] leading-tight text-muted-foreground">{item.detail}</span>
             </span>
           </motion.li>
         ))}

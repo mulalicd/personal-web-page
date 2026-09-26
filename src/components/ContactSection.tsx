@@ -114,7 +114,7 @@ export function ContactSection() {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-5 gap-12 lg:gap-16 max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-5 gap-12 lg:gap-16 max-w-6xl xl:max-w-none mx-auto">
             <div className="lg:col-span-2 space-y-4">
               {contactMethods.map((method) => {
                 const Icon = method.icon;

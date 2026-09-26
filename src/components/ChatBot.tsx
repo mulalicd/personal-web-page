@@ -36,12 +36,14 @@ async function streamChat(messages: Message[], handlers: StreamHandlers): Promis
       return;
     }
 
-    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+    // TextDecoder + reader (not TextDecoderStream) so Safari < 14.1 can stream too.
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
     let buffer = "";
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      buffer += value;
+      buffer += decoder.decode(value, { stream: true });
       let newline: number;
       while ((newline = buffer.indexOf("\n")) !== -1) {
         const line = buffer.slice(0, newline).trim();
@@ -215,7 +217,7 @@ export function ChatBot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 h-[min(500px,calc(100dvh-11rem))] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 chat-window-height bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card">

@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 @layer base {
   :root {
     --background: 210 20% 98%;
@@ -271,5 +269,60 @@
   .fx-sweep-run::after,
   .fx-sweep-hover:hover::after {
     animation: none;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Cross-device layout (post-Sprint 03, Director request 2026-09-26)
+   --------------------------------------------------------------------------- */
+@layer base {
+  /* Large desktops: scale the whole rem-based design with the screen, so the
+     site fills a 1920 / 2560 / 4K display instead of a narrow column.
+     ≤1535 px (laptops, tablets, phones) stays at the standard 16 px. */
+  @media (min-width: 1536px) {
+    html {
+      font-size: clamp(16px, calc(0.34vw + 10.8px), 21px);
+    }
+  }
+
+  :root {
+    color-scheme: light;
+  }
+  .dark {
+    color-scheme: dark;
+  }
+
+  body {
+    overflow-x: hidden; /* fallback for browsers without overflow: clip */
+    -webkit-tap-highlight-color: transparent;
+  }
+  @supports (overflow: clip) {
+    body {
+      overflow-x: clip;
+    }
+  }
+}
+
+@layer components {
+  /* Wide screens: content spans ~92% of the display. */
+  @media (min-width: 1536px) {
+    .container {
+      max-width: min(92vw, 150rem);
+    }
+  }
+}
+
+@layer utilities {
+  /* Full-height hero that ignores the mobile browser toolbar (svh), with a
+     100vh fallback for browsers without small-viewport units. */
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+  /* Chat window height: never taller than the visible viewport minus header/button. */
+  .chat-window-height {
+    height: min(500px, calc(100vh - 11rem));
+    height: min(500px, calc(100dvh - 11rem));
   }
 }

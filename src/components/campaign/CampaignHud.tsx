@@ -32,7 +32,7 @@ export function CampaignHud() {
       </div>
 
       {current && (
-        <div className="fixed right-3 top-[4.6rem] lg:top-[5.6rem] z-40 hidden sm:flex items-center gap-2 rounded-full border border-border/60 bg-card/85 px-3 py-1 text-[11px] font-medium text-muted-foreground shadow-md backdrop-blur-md">
+        <div className="fixed right-3 top-[4.6rem] lg:top-[5.6rem] z-40 hidden sm:flex items-center gap-2 rounded-full border border-border/60 bg-card/85 px-3 py-1 text-[0.6875rem] font-medium text-muted-foreground shadow-md backdrop-blur-md">
           <Compass className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
           <span className="text-foreground">{chapterLabel(current)}</span>
           <span aria-hidden="true">·</span>
@@ -57,7 +57,7 @@ export function CampaignHud() {
                 <Sparkles className="h-4 w-4 text-[hsl(var(--rarity-legendary))]" aria-hidden="true" />
               </span>
               <span className="text-left">
-                <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--rarity-legendary))]">
+                <span className="block text-[0.625rem] font-bold uppercase tracking-[0.2em] text-[hsl(var(--rarity-legendary))]">
                   Chapter {banner.number} unlocked
                 </span>
                 <span className="block text-sm font-semibold text-foreground">{banner.title}</span>

@@ -63,7 +63,7 @@ export function BooksSection() {
           </div>
 
           {/* Books Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 2xl:gap-10 2xl:max-w-7xl 2xl:mx-auto">
             {profile.books.map((book, index) => (
               <motion.div
                 key={book.title}

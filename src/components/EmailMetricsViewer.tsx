@@ -254,7 +254,7 @@ export function EmailMetricsViewer() {
                     <Badge variant="outline">{r.attempts} attempt{r.attempts === 1 ? "" : "s"}</Badge>
                     <span className="text-xs text-muted-foreground">{r.total_latency_ms} ms</span>
                     {r.idempotency_key && (
-                      <span className="text-[10px] text-muted-foreground font-mono truncate max-w-[260px]">
+                      <span className="text-[0.625rem] text-muted-foreground font-mono truncate max-w-[260px]">
                         idem: {r.idempotency_key}
                       </span>
                     )}

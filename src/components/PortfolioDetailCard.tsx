@@ -118,7 +118,7 @@ function DetailContent({ item, onClose }: { item: PortfolioItem; onClose: () => 
                 </button>
               </div>
               <div className="absolute bottom-3 left-3">
-                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wider ${accentBgClass}`}>
+                <span className={`px-2.5 py-1 rounded-lg text-[0.625rem] font-semibold uppercase tracking-wider ${accentBgClass}`}>
                   {isApp ? "Web Application" : "AI Prompt"}
                 </span>
               </div>
@@ -137,14 +137,14 @@ function DetailContent({ item, onClose }: { item: PortfolioItem; onClose: () => 
                     <div className="flex gap-3">
                       <AlertTriangle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-[10px] font-semibold text-destructive uppercase tracking-wider mb-0.5">Problem</p>
+                        <p className="text-[0.625rem] font-semibold text-destructive uppercase tracking-wider mb-0.5">Problem</p>
                         <p className="text-sm text-muted-foreground">{item.problem}</p>
                       </div>
                     </div>
                     <div className="flex gap-3">
                       <Lightbulb className={`w-4 h-4 ${accentClass} flex-shrink-0 mt-0.5`} />
                       <div>
-                        <p className={`text-[10px] font-semibold ${accentClass} uppercase tracking-wider mb-0.5`}>Solution</p>
+                        <p className={`text-[0.625rem] font-semibold ${accentClass} uppercase tracking-wider mb-0.5`}>Solution</p>
                         <p className="text-sm text-muted-foreground">{item.solution}</p>
                       </div>
                     </div>
@@ -153,7 +153,7 @@ function DetailContent({ item, onClose }: { item: PortfolioItem; onClose: () => 
                   <div className="flex gap-3">
                     <Lightbulb className={`w-4 h-4 ${accentClass} flex-shrink-0 mt-0.5`} />
                     <div>
-                      <p className={`text-[10px] font-semibold ${accentClass} uppercase tracking-wider mb-0.5`}>Description</p>
+                      <p className={`text-[0.625rem] font-semibold ${accentClass} uppercase tracking-wider mb-0.5`}>Description</p>
                       <p className="text-sm text-muted-foreground">{item.description}</p>
                     </div>
                   </div>
@@ -162,7 +162,7 @@ function DetailContent({ item, onClose }: { item: PortfolioItem; onClose: () => 
                 <div className="flex gap-3">
                   <TrendingUp className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-green-500 uppercase tracking-wider mb-0.5">Value</p>
+                    <p className="text-[0.625rem] font-semibold text-green-500 uppercase tracking-wider mb-0.5">Value</p>
                     <p className="text-sm font-medium text-foreground">{item.value}</p>
                   </div>
                 </div>
@@ -171,12 +171,12 @@ function DetailContent({ item, onClose }: { item: PortfolioItem; onClose: () => 
                 <div className="flex gap-3">
                   <Code2 className={`w-4 h-4 ${accentClass} flex-shrink-0 mt-0.5`} />
                   <div>
-                    <p className={`text-[10px] font-semibold ${accentClass} uppercase tracking-wider mb-1.5`}>Tech Stack</p>
+                    <p className={`text-[0.625rem] font-semibold ${accentClass} uppercase tracking-wider mb-1.5`}>Tech Stack</p>
                     <div className="flex flex-wrap gap-1.5">
                       {item.techStack.map((tech) => (
                         <span
                           key={tech}
-                          className="px-2 py-0.5 bg-muted rounded-md text-[11px] font-medium text-muted-foreground border border-border/50"
+                          className="px-2 py-0.5 bg-muted rounded-md text-[0.6875rem] font-medium text-muted-foreground border border-border/50"
                         >
                           {tech}
                         </span>

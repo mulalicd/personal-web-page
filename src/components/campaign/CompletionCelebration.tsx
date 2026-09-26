@@ -108,7 +108,7 @@ export function CompletionCelebration() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[hsl(var(--rarity-legendary))]/15 shadow-[0_0_40px_hsl(var(--rarity-legendary)/0.45)]">
               <Trophy className="h-8 w-8 text-[hsl(var(--rarity-legendary))]" aria-hidden="true" />
             </div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[hsl(var(--rarity-legendary))]">
+            <p className="text-[0.6875rem] font-bold uppercase tracking-[0.25em] text-[hsl(var(--rarity-legendary))]">
               Campaign complete · {chapters.length}/{chapters.length}
             </p>
             <h2 id="campaign-complete-title" className="mt-2 text-2xl font-bold text-foreground">

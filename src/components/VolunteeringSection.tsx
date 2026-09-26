@@ -24,7 +24,7 @@ export function VolunteeringSection() {
           initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="max-w-5xl mx-auto"
+          className="max-w-5xl xl:max-w-none mx-auto"
         >
           {/* Section Header */}
           <div className="text-center mb-16">

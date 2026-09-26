@@ -35,7 +35,7 @@ export function AboutSection() {
           initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="max-w-6xl mx-auto"
+          className="max-w-6xl xl:max-w-none mx-auto"
         >
           <div className="text-center mb-16">
             <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
@@ -113,7 +113,7 @@ export function AboutSection() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-3 text-left">
                       <p className="text-xs font-semibold text-white leading-tight">{image.caption}</p>
-                      <p className="text-[10px] text-white/80 mt-0.5 line-clamp-2">{image.detail}</p>
+                      <p className="text-[0.625rem] text-white/80 mt-0.5 line-clamp-2">{image.detail}</p>
                     </div>
                   </button>
                 ))}

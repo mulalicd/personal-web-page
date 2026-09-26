@@ -77,7 +77,7 @@ export function AISBPSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.45 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mb-12"
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl 2xl:max-w-5xl mx-auto mb-12"
           >
             {profile.aisbp.stats.map((stat) => (
               <div key={stat.label} className="text-center bg-card p-4 rounded-xl border border-border">
@@ -88,7 +88,7 @@ export function AISBPSection() {
           </motion.div>
 
           {/* Products Grid */}
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto">
             {profile.aisbp.products.map((product, index) => {
               const Icon = PRODUCT_ICONS[index] ?? BookOpen;
               return (

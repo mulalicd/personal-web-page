@@ -117,10 +117,10 @@ export default function ExecutivePresence({ portraitRef }: ExecutivePresenceProp
           className="pointer-events-none absolute z-20 w-max max-w-[16rem] -translate-x-1/2 -translate-y-[calc(100%+14px)] rounded-xl border border-border/60 bg-card/95 px-3 py-2 text-left shadow-xl backdrop-blur-md"
           style={{ left: hover.x, top: hover.y }}
         >
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">{hover.eraName}</p>
+          <p className="text-[0.625rem] font-semibold uppercase tracking-wider text-primary">{hover.eraName}</p>
           <p className="text-xs font-semibold leading-snug text-foreground">{hover.node.organization}</p>
-          <p className="text-[11px] leading-snug text-muted-foreground">{hover.node.title}</p>
-          <p className="text-[10px] text-muted-foreground">{hover.node.period}</p>
+          <p className="text-[0.6875rem] leading-snug text-muted-foreground">{hover.node.title}</p>
+          <p className="text-[0.625rem] text-muted-foreground">{hover.node.period}</p>
         </div>
       )}
     </div>

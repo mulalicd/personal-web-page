@@ -52,7 +52,7 @@ export function ExperienceSection() {
           initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="max-w-5xl mx-auto"
+          className="max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto"
         >
           {/* Section Header */}
           <div className="text-center mb-16">
@@ -156,7 +156,7 @@ export function ExperienceSection() {
                       <div>
                         <div className="mb-2 flex flex-wrap items-center gap-2">
                           <span
-                            className="rounded-md px-2 py-0.5 text-[10px] font-extrabold tracking-[0.18em]"
+                            className="rounded-md px-2 py-0.5 text-[0.625rem] font-extrabold tracking-[0.18em]"
                             style={{ color: eraColor, backgroundColor: `hsl(var(${ERA_TOKEN[exp.era]}) / 0.12)` }}
                           >
                             LVL {level}
@@ -186,7 +186,7 @@ export function ExperienceSection() {
                             key={metric.label}
                             className="flex min-w-[5.5rem] flex-col-reverse rounded-lg border border-primary/15 bg-primary/5 px-3 py-2 text-center"
                           >
-                            <dt className="text-[10px] text-muted-foreground">{metric.label}</dt>
+                            <dt className="text-[0.625rem] text-muted-foreground">{metric.label}</dt>
                             <dd className="text-sm font-bold text-primary">{metric.value}</dd>
                           </div>
                         ))}

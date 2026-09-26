@@ -17,7 +17,7 @@ export function HeroSection() {
   return (
     <section
       id="home"
-      className="min-h-screen flex items-center bg-hero pt-20 lg:pt-0 overflow-x-clip"
+      className="min-h-screen-safe flex items-center bg-hero pt-20 lg:pt-0 overflow-x-clip"
     >
       <div className="container mx-auto px-4 lg:px-8 py-12 lg:py-20">
         {/* Open for Mandates Banner */}
@@ -33,7 +33,7 @@ export function HeroSection() {
           </span>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 2xl:gap-24 items-center">
           {/* Left Content */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -168,7 +168,7 @@ export function HeroSection() {
               {/* Image container */}
               <div
                 ref={portraitRef}
-                className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden border-4 border-card shadow-xl"
+                className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 2xl:w-[26rem] 2xl:h-[26rem] rounded-full overflow-hidden border-4 border-card shadow-xl"
               >
               <img
                   src={davorProfile}

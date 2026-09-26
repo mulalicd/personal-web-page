@@ -69,7 +69,7 @@ function TrophyCard({ trophy, index }: { trophy: Trophy; index: number }) {
         >
           <div className="flex items-start justify-between">
             <span
-              className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em]"
+              className="rounded-full px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-[0.18em]"
               style={{ color: `hsl(var(${rarity.token}))`, backgroundColor: `hsl(var(${rarity.token}) / 0.12)` }}
             >
               {rarity.label}
@@ -83,16 +83,16 @@ function TrophyCard({ trophy, index }: { trophy: Trophy; index: number }) {
             </span>
           </div>
           <p className="mt-2 text-xs font-semibold leading-snug text-foreground line-clamp-2">{trophy.title}</p>
-          <p className="text-[10px] text-muted-foreground">{trophy.period}</p>
+          <p className="text-[0.625rem] text-muted-foreground">{trophy.period}</p>
         </div>
 
         {/* Back */}
         <div className={`${faceBase} [transform:rotateY(180deg)] overflow-y-auto`}>
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: `hsl(var(${rarity.token}))` }}>
+          <p className="text-[0.625rem] font-bold uppercase tracking-[0.18em]" style={{ color: `hsl(var(${rarity.token}))` }}>
             Source · {trophy.period}
           </p>
           <p className="mt-1 text-xs font-semibold leading-snug text-foreground">{trophy.source}</p>
-          <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{trophy.detail}</p>
+          <p className="mt-1 text-[0.6875rem] leading-snug text-muted-foreground">{trophy.detail}</p>
         </div>
       </motion.div>
     </motion.button>
