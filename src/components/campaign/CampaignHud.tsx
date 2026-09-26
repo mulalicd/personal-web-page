@@ -43,7 +43,9 @@ export function CampaignHud() {
       )}
 
       <div className="pointer-events-none fixed inset-x-0 top-24 lg:top-28 z-50 flex justify-center px-4" aria-live="polite">
-        <AnimatePresence>
+        {/* mode="wait": a fast scroll unlocks chapters back-to-back; without it the
+            leaving and arriving banners sat side by side and wrapped their text. */}
+        <AnimatePresence mode="wait">
           {banner && effectsEnabled && (
             <motion.div
               key={banner.sectionId}
@@ -51,13 +53,13 @@ export function CampaignHud() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -16, scale: 0.97 }}
               transition={{ type: "spring", stiffness: 260, damping: 22 }}
-              className="fx-sweep fx-sweep-run relative flex items-center gap-3 rounded-2xl border border-[hsl(var(--rarity-legendary))]/40 bg-card/95 px-5 py-3 shadow-2xl backdrop-blur-md"
+              className="fx-sweep fx-sweep-run relative flex max-w-full items-center gap-3 rounded-2xl border border-[hsl(var(--rarity-legendary))]/40 bg-card/95 px-5 py-3 shadow-2xl backdrop-blur-md"
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[hsl(var(--rarity-legendary))]/15">
                 <Sparkles className="h-4 w-4 text-[hsl(var(--rarity-legendary))]" aria-hidden="true" />
               </span>
               <span className="text-left">
-                <span className="block text-[0.625rem] font-bold uppercase tracking-[0.2em] text-[hsl(var(--rarity-legendary))]">
+                <span className="block whitespace-nowrap text-[0.625rem] font-bold uppercase tracking-[0.2em] text-[hsl(var(--rarity-legendary))]">
                   Chapter {banner.number} unlocked
                 </span>
                 <span className="block text-sm font-semibold text-foreground">{banner.title}</span>

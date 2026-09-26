@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { CVRequestsViewer } from "@/components/CVRequestsViewer";
 import { callFunction } from "@/lib/api";
 import type { Json } from "@/integrations/supabase/types";
@@ -46,7 +46,15 @@ interface ConsultationRequest {
   confirmed_at: string | null;
 }
 
-export default function Admin() {
+export default function AdminPage() {
+  return (
+    <AuthProvider>
+      <Admin />
+    </AuthProvider>
+  );
+}
+
+function Admin() {
   const navigate = useNavigate();
   const { user, isAdmin, loading: authLoading, signOut } = useAuth();
   const [cvRequests, setCvRequests] = useState<CVRequest[]>([]);

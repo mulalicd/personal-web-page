@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, User, Loader2 } from "lucide-react";
 import { DMLogo } from "@/components/DMLogo";
 import { BACKEND_UNAVAILABLE_MESSAGE, CHAT_HISTORY_LIMIT, CHAT_MESSAGE_MAX_LENGTH, CHAT_SUGGESTIONS } from "@/constants";
-import { functionsBaseUrl } from "@/integrations/supabase/client";
+import { functionsBaseUrl } from "@/integrations/supabase/config";
 
 type Message = { role: "user" | "assistant"; content: string };
 

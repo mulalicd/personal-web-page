@@ -17,7 +17,6 @@ export default defineConfig(() => ({
         manualChunks: {
           react: ["react", "react-dom", "react-router-dom"],
           motion: ["framer-motion"],
-          supabase: ["@supabase/supabase-js"],
           radix: ["@radix-ui/react-dialog", "@radix-ui/react-tabs", "@radix-ui/react-toast", "@radix-ui/react-tooltip"],
         },
       },

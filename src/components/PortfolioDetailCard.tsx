@@ -97,6 +97,8 @@ function DetailContent({ item, onClose }: { item: PortfolioItem; onClose: () => 
                 <img
                   src={getPortfolioImage(item.id)}
                   alt={name}
+                  width={800}
+                  height={450}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />

@@ -34,6 +34,8 @@ export function AISBPSection() {
               <img
                 src={aisbpLogo}
                 alt="AISBP Framework™ Logo"
+                width={430}
+                height={183}
                 className="h-20 md:h-24 w-auto"
                 loading="lazy"
               />

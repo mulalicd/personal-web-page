@@ -9,7 +9,12 @@
     <!-- Inter for every OS (Windows/macOS/Android/iOS would otherwise fall back to different system fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+    <!-- Non-blocking: the page paints with the fallback font and swaps to Inter when it arrives -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" /></noscript>
+    <!-- Hero portrait is the LCP element: fetch it before the JS bundle discovers it -->
+    <link rel="preload" as="image" href="/davor-portrait.webp" type="image/webp" fetchpriority="high" />
     <title>Davor Mulalić — C-Level AI Leader | CEO & Managing Director</title>
     <meta name="description" content="Davor Mulalić — C-Level AI Leader, CEO &amp; Managing Director with 25+ years driving growth across education, finance, manufacturing and corporate sectors. Grew operating income from €12M to €16M (+33%). Available now for CEO / COO / Chief AI mandates." />
     <meta name="author" content="Davor Mulalić" />

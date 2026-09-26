@@ -77,6 +77,8 @@ export function BooksSection() {
                   <img
                     src={BOOK_COVERS[book.coverKey]}
                     alt={`Book cover: ${book.title}`}
+                    width={560}
+                    height={800}
                     className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                   />

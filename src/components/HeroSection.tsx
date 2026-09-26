@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { lazy, Suspense, useRef } from "react";
+import { useAfterLoadIdle } from "@/hooks/useAfterLoadIdle";
 import { ArrowRight, Download, Linkedin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CVRequestDialog } from "@/components/CVRequestDialog";
-import davorProfile from "@/assets/davor-profile-real.webp";
 import { MetricBarGroup } from "@/components/MetricBar3D";
 import { track } from "@/lib/analytics";
 import { profile } from "@/content/profile";
@@ -14,6 +14,7 @@ const ExecutivePresence = lazy(() => import("@/components/executive-presence/Exe
 
 export function HeroSection() {
   const portraitRef = useRef<HTMLDivElement>(null);
+  const sceneReady = useAfterLoadIdle();
   return (
     <section
       id="home"
@@ -153,11 +154,12 @@ export function HeroSection() {
             </motion.div>
           </motion.div>
 
-          {/* Right Content - Image & Stats */}
+          {/* Right Content - Image & Stats. No fade-in: the portrait is the LCP
+              element and an opacity-0 start would delay it by the animation. */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            initial={{ scale: 0.94 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.6 }}
             className="order-1 lg:order-2 flex flex-col items-center"
           >
             <div className="relative mb-8">
@@ -171,11 +173,11 @@ export function HeroSection() {
                 className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 2xl:w-[26rem] 2xl:h-[26rem] rounded-full overflow-hidden border-4 border-card shadow-xl"
               >
               <img
-                  src={davorProfile}
+                  src="/davor-portrait.webp"
                   alt={`${profile.name} — ${profile.headline}`}
                   className="w-full h-full object-cover"
                   loading="eager"
-                  decoding="async"
+                  fetchPriority="high"
                   width={384}
                   height={384}
                 />
@@ -184,9 +186,11 @@ export function HeroSection() {
               {/* "Executive Presence": career orbits rendered ABOVE the portrait;
                   a depth mask hides their far side behind it. */}
               <div className="absolute -inset-16 md:-inset-20 lg:-inset-24 z-10">
-                <Suspense fallback={null}>
-                  <ExecutivePresence portraitRef={portraitRef} />
-                </Suspense>
+                {sceneReady && (
+                  <Suspense fallback={null}>
+                    <ExecutivePresence portraitRef={portraitRef} />
+                  </Suspense>
+                )}
               </div>
             </div>
 

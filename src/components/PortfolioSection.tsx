@@ -5,8 +5,12 @@ import {
 } from "lucide-react";
 import { PortfolioFilter } from "./PortfolioFilter";
 import { PortfolioDetailCard } from "./PortfolioDetailCard";
-import { getPortfolioImage } from "./portfolioImages";
+import { getPortfolioImage, getPortfolioSrcSet } from "./portfolioImages";
 import { FloatingCard } from "./FloatingCard";
+import { useAfterLoadIdle } from "@/hooks/useAfterLoadIdle";
+
+/** Card width per breakpoint, matching the 1/2/3/4/5-column grids below. */
+const CARD_IMAGE_SIZES = "(min-width: 1536px) 18vw, (min-width: 1280px) 23vw, (min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw";
 
 // Complete list of 20 web apps - shuffled by industry
 const webApps = [
@@ -91,6 +95,8 @@ export const PortfolioSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeType, setActiveType] = useState<"all" | "apps" | "prompts">("all");
   const [activeIndustry, setActiveIndustry] = useState("");
+  // The 60 cards are ~40% of the page's DOM: render them right after first paint.
+  const cardsReady = useAfterLoadIdle();
 
   // Filter logic
   const filteredApps = useMemo(() => {
@@ -155,7 +161,7 @@ export const PortfolioSection = () => {
         />
 
         {/* Web Apps Section */}
-        {filteredApps.length > 0 && (
+        {cardsReady && filteredApps.length > 0 && (
           <div className="mb-16">
             <div className="flex items-center gap-3 mb-6">
               <Sparkles className="w-5 h-5 text-primary" />
@@ -183,6 +189,10 @@ export const PortfolioSection = () => {
                       <div className="aspect-[16/10] bg-muted/30 relative overflow-hidden">
                         <img
                           src={getPortfolioImage(app.id)}
+                          srcSet={getPortfolioSrcSet(app.id)}
+                          sizes={CARD_IMAGE_SIZES}
+                          width={800}
+                          height={500}
                           alt={app.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           loading="lazy"
@@ -222,7 +232,7 @@ export const PortfolioSection = () => {
         )}
 
         {/* AI Prompts Section */}
-        {filteredPrompts.length > 0 && (
+        {cardsReady && filteredPrompts.length > 0 && (
           <div>
             <div className="flex items-center gap-3 mb-6">
               <Lightbulb className="w-5 h-5 text-accent" />
@@ -250,6 +260,10 @@ export const PortfolioSection = () => {
                       <div className="aspect-[16/10] bg-muted/20 relative overflow-hidden">
                         <img
                           src={getPortfolioImage(prompt.id)}
+                          srcSet={getPortfolioSrcSet(prompt.id)}
+                          sizes={CARD_IMAGE_SIZES}
+                          width={800}
+                          height={500}
                           alt={prompt.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           loading="lazy"

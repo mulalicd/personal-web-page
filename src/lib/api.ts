@@ -6,7 +6,7 @@
  * never has to dig through fetch / FunctionsHttpError internals.
  */
 import { BACKEND_UNAVAILABLE_MESSAGE } from "@/constants";
-import { functionsBaseUrl, supabase } from "@/integrations/supabase/client";
+import { functionsBaseUrl } from "@/integrations/supabase/config";
 
 export type ApiResult<T> =
   | { success: true; data: T }
@@ -38,13 +38,16 @@ export async function callFunction<T>(
   body: unknown,
   options: { authenticated?: boolean } = {},
 ): Promise<ApiResult<T>> {
-  if (!functionsBaseUrl || !supabase) {
+  if (!functionsBaseUrl) {
     return { success: false, error: BACKEND_UNAVAILABLE_MESSAGE, code: "BACKEND_NOT_CONFIGURED" };
   }
 
   try {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (options.authenticated) {
+      // Loaded on demand: only admin pages send authenticated calls.
+      const { supabase } = await import("@/integrations/supabase/client");
+      if (!supabase) return { success: false, error: BACKEND_UNAVAILABLE_MESSAGE, code: "BACKEND_NOT_CONFIGURED" };
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       if (!token) return { success: false, error: "Please sign in again.", code: "UNAUTHENTICATED" };

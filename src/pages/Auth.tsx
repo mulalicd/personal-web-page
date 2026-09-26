@@ -8,13 +8,21 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/hooks/useAuth";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { loginSchema, emailSchema } from "@/lib/validation/schemas";
 
 type Mode = "signin" | "forgot";
 
-export default function Auth() {
+export default function AuthPage() {
+  return (
+    <AuthProvider>
+      <Auth />
+    </AuthProvider>
+  );
+}
+
+function Auth() {
   const navigate = useNavigate();
   const { user, isAdmin, signIn, loading: authLoading } = useAuth();
   const [mode, setMode] = useState<Mode>("signin");

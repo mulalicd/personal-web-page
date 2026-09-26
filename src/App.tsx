@@ -3,7 +3,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
@@ -12,6 +11,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 // Secondary routes are lazy loaded so they never weigh down the public homepage bundle.
+// Admin and Auth bring their own AuthProvider, so supabase-js loads only there.
 const Admin = lazy(() => import("./pages/Admin"));
 const Auth = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -28,8 +28,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <AuthProvider>
-        <TooltipProvider>
+      <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -45,8 +44,7 @@ const App = () => (
           </Suspense>
         </BrowserRouter>
         <Analytics />
-        </TooltipProvider>
-      </AuthProvider>
+      </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

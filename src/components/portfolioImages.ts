@@ -68,3 +68,10 @@ const portfolioImages: Record<number, string> = {
 export const getPortfolioImage = (id: number): string => {
   return portfolioImages[id] || "";
 };
+
+/** Responsive candidates for the small portfolio cards (Lighthouse: properly sized images). */
+export const getPortfolioSrcSet = (id: number): string | undefined => {
+  const url = portfolioImages[id];
+  if (!url) return undefined;
+  return [400, 800].map((width) => `${url.replace("w=800", `w=${width}`)} ${width}w`).join(", ");
+};

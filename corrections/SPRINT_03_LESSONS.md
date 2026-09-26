@@ -43,3 +43,20 @@ Date: 2026-09-26
   Lovable workspace). Remaining mentions are governance history + a guard
   pattern that blocks re-introduction. A possible remaining link is the Lovable
   GitHub App installation on the repo — only the repo owner can see/remove it.
+
+### 2026-09-26 — Final brutal stress test
+- Gotcha: `vite preview` serves NO compression, so local Lighthouse mobile
+  scores look far worse than production (Vercel serves brotli). Measure with a
+  compressing server (`npx serve dist -s`) or against production.
+- Gotcha: a `manualChunks` entry for supabase-js made Rollup park shared
+  helpers in that chunk, so the homepage modulepreloaded 191 KB of Supabase it
+  never used. Fixed by splitting `integrations/supabase/config.ts` (URL only),
+  scoping AuthProvider to /admin + /auth and dropping the forced chunk.
+- Gotcha: an `initial={{ opacity: 0 }}` wrapper around the LCP image delays
+  LCP by the whole animation. Never fade in the LCP element.
+- Correction: fast scrolling unlocked chapters back-to-back; AnimatePresence
+  rendered the leaving and arriving banners side by side (squeezed, wrapped
+  text). `mode="wait"` + `whitespace-nowrap` fixed it.
+- Remaining limit: mobile Lighthouse ~40 is 93% "render delay" — a client-side
+  SPA must execute its JS before first paint. The real fix is prerendering
+  (SSG) — an architecture decision for the Director, not done unasked.
