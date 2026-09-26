@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import { X, AlertTriangle, Lightbulb, TrendingUp, Code2 } from "lucide-react";
@@ -39,11 +39,6 @@ interface PortfolioDetailCardProps {
  * Esc-to-close and a proper exit animation.
  */
 export function PortfolioDetailCard({ item, onClose }: PortfolioDetailCardProps) {
-  // document.body exists only in the browser: the portal mounts after hydration
-  // (the homepage is prerendered, Sprint 04).
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
   useEffect(() => {
     if (!item) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -58,7 +53,6 @@ export function PortfolioDetailCard({ item, onClose }: PortfolioDetailCardProps)
     };
   }, [item, onClose]);
 
-  if (!mounted) return null;
   return createPortal(
     <AnimatePresence>
       {item && <DetailContent key={item.id} item={item} onClose={onClose} />}

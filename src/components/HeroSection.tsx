@@ -177,8 +177,7 @@ export function HeroSection() {
                   alt={`${profile.name} — ${profile.headline}`}
                   className="w-full h-full object-cover"
                   loading="eager"
-                  // Lowercase attribute: React 18 does not know the camelCase prop.
-                  {...{ fetchpriority: "high" }}
+                  fetchPriority="high"
                   width={384}
                   height={384}
                 />
