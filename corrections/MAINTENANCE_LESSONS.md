@@ -32,3 +32,11 @@
   check built on it is always green. Check the status code explicitly."
 - A-8 / E-12: "Supabase free plan pauses after 7 days of inactivity — ship a
   keep-alive and a daily end-to-end health check with every Supabase project."
+
+### 2026-11-20 — Commander v1.8.0 review
+- The upgrade check found this project violates the new E-24: the Vercel
+  catch-all rewrite also serves `index.html` for `/assets/*`, so a visitor
+  with the site open during a release gets HTML for a lazy chunk. Proposed,
+  not applied (COMMANDER_UPGRADE_v1.8.0_PROPOSAL.md).
+- Commander v1.8.0 itself has uneven version stamps and a CLAUDE.md template
+  that omits seven 🔴 rules — reported to the Director, not fixed unasked.

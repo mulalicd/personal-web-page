@@ -62,3 +62,4 @@
 - [2026-09-26 15:07] Write: ..\..\..\cmdr\apply3.py
 - [2026-09-26 15:08] Write: ..\..\..\cmdr\apply4.py
 - [2026-09-26 15:11] Write: ..\.claude\projects\C--Users-WIN11-AppData-Roaming-Claude-scratch-workspaces-23a0f535-7648-440a-a7a7-bda97087e7d4-4631facc-a7c8-4fdd-9330-0d875d5bb7c2-scratch-2026-09-26-2ed766\memory\personal-web-page-project.md
+- [2026-11-20 20:05] Write: COMMANDER_UPGRADE_v1.8.0_PROPOSAL.md
