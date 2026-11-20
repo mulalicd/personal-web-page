@@ -72,3 +72,4 @@
   took 0.5 s (flash-latest failed fast). Server-Timing made this visible.
   → Proposed to the Director: lite first (PDL-005 change), not done unasked.
 - Director chose "lite prvi" (2026-11-20). First deploy attempt failed: Supabase CLI login expired again within ~1 hour (401) — 4th time in this project.
+- Deployed lite-first after re-login. Live, 6 questions (EN/BS/DE): full answer in 0.8–3.7 s (first incl. cold start), model start 0.45–0.99 s; every answer from gemini-flash-lite-latest. Before the fixes: 16–58 s.

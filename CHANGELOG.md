@@ -26,3 +26,4 @@
 - 2026-11-20 [FIX] Backend outage (paused Supabase project): daily keep-alive (Vercel cron + GitHub health check with alert), self-healing Gemini model discovery, honest error texts
 - 2026-11-20 [SETUP] Commander v1.8.1 (project was v1.6): critical rules inlined in CLAUDE.md; E-24 — /assets/* no longer rewritten to index.html, one automatic reload after a release
 - 2026-11-20 [FIX] Self-healing Gemini chatbot deployed; fallback covered by a Deno test
+- 2026-11-20 [PERF] Chatbot answers in about 1–4 s (was 16–58 s): minimal thinking, flash-lite first; CV link re-sent to already-approved requesters
