@@ -74,7 +74,7 @@ export async function callFunction<T>(
     console.error(`[api] ${name} request failed:`, error);
     return {
       success: false,
-      error: "Could not reach the server. Please check your connection and try again.",
+      error: "The server cannot be reached right now. Please try again in a few minutes, or email directly.",
       code: "NETWORK_ERROR",
     };
   }

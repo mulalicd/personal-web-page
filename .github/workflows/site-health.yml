@@ -1,0 +1,44 @@
+name: Site health (daily)
+
+# Daily end-to-end check of the live backend (Director requirement 2026-11-20):
+#  1. a database read — also keeps the free Supabase project from pausing
+#     (second keep-alive next to the Vercel cron /api/keepalive);
+#  2. a real chatbot answer — proves the Gemini key + model chain works.
+# A failed run makes GitHub email the repository's notification recipients.
+# Both values below are public by design (they ship in the browser bundle).
+
+on:
+  schedule:
+    - cron: "30 7 * * *"
+  workflow_dispatch:
+
+env:
+  SUPABASE_URL: https://qixpdeqjrkvfurqhzvtc.supabase.co
+  SUPABASE_PUBLISHABLE_KEY: sb_publishable_A6nGO5-zhtjPDiPgJl8YDg_41TAZg6W
+  SITE_ORIGIN: https://mulalic.ai-studio.wiki
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Database reachable (keeps the project active)
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" -H "Authorization: Bearer $SUPABASE_PUBLISHABLE_KEY" \
+            "$SUPABASE_URL/rest/v1/cv_requests?select=id&limit=1")
+          echo "REST status: $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::Supabase is unreachable (HTTP $code). If the project is paused, restore it in the Supabase dashboard."
+            exit 1
+          fi
+
+      - name: Chatbot answers
+        run: |
+          out=$(curl -s -N --max-time 90 -X POST "$SUPABASE_URL/functions/v1/chat-assistant" \
+            -H "Origin: $SITE_ORIGIN" -H "Content-Type: application/json" \
+            -d '{"messages":[{"role":"user","content":"In one sentence: what is Davor Mulalic current role?"}]}')
+          echo "$out" | head -c 600
+          if ! echo "$out" | grep -q '"text"'; then
+            echo "::error::The chatbot did not answer. Check Gemini keys/models (Supabase function logs)."
+            exit 1
+          fi

@@ -63,7 +63,7 @@ async function streamChat(messages: Message[], handlers: StreamHandlers): Promis
     handlers.onDone();
   } catch (error) {
     console.error("[chat] request failed:", error);
-    handlers.onError("Connection failed. Please check your internet and try again.");
+    handlers.onError("The assistant cannot be reached right now. Please try again in a few minutes, or use the contact form.");
   }
 }
 
