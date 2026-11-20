@@ -18,6 +18,17 @@
 - Gotcha: browser error texts said "check your internet" for a server-side
   outage — misleading to visitors. Now they say the service is unreachable.
 
+- Root cause of the pause despite a keep-alive: the Director's own workflow
+  `keepalive.yml` (every 3 days) called `GET /rest/v1/` — the OpenAPI root,
+  which rejects publishable/anon keys ("Only the service_role API key can be
+  used for this endpoint"). No query reached Postgres, and `curl` without
+  `--fail` exited 0, so every run was GREEN while doing nothing.
+  → A keep-alive must (1) run a real table query and (2) fail loudly on any
+  non-200. Verified live 2026-11-20: Vercel `/api/keepalive` → 200 from the
+  DB; `site-health.yml` → DB 200 + real chatbot answer.
+
 ## Commander Improvement Candidates
+- E-12: "`curl` without `--fail` returns exit 0 on HTTP 4xx/5xx — a scheduled
+  check built on it is always green. Check the status code explicitly."
 - A-8 / E-12: "Supabase free plan pauses after 7 days of inactivity — ship a
   keep-alive and a daily end-to-end health check with every Supabase project."
