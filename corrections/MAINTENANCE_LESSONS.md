@@ -40,3 +40,12 @@
   not applied (COMMANDER_UPGRADE_v1.8.0_PROPOSAL.md).
 - Commander v1.8.0 itself has uneven version stamps and a CLAUDE.md template
   that omits seven 🔴 rules — reported to the Director, not fixed unasked.
+
+### 2026-11-20 — Self-healing chatbot deployed
+- chat-assistant redeployed with model discovery; live answers in EN and BS OK.
+- A live "all models retired" simulation (temporary GEMINI_MODELS secret on
+  production) was blocked by the permission classifier — correctly: it would
+  have broken production for a minute. Replaced by a Deno unit test with a
+  fake Google API (`_shared/ai/gemini-provider.test.ts`): preferred aliases
+  404 → newest stable Flash model answers, previews skipped. → Prove
+  failure-path behaviour with a mocked dependency, never by breaking prod.
