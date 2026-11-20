@@ -71,3 +71,4 @@
   return headers within the 20 s timeout before the fallback answered; two
   took 0.5 s (flash-latest failed fast). Server-Timing made this visible.
   → Proposed to the Director: lite first (PDL-005 change), not done unasked.
+- Director chose "lite prvi" (2026-11-20). First deploy attempt failed: Supabase CLI login expired again within ~1 hour (401) — 4th time in this project.

@@ -9,7 +9,9 @@ import { AIProviderError, type AIProvider, type ChatTurn, type GenerateOptions }
  * to each new Flash generation, so a model retirement normally needs no change.
  * Optional secret GEMINI_MODELS ("model-a,model-b") overrides this list.
  */
-export const PREFERRED_GEMINI_MODELS: readonly string[] = ["gemini-flash-latest", "gemini-flash-lite-latest"];
+// Lite first (Director decision 2026-11-20, PDL-005 amended): measured 0.4–0.6 s,
+// while gemini-flash-latest often failed or took > 20 s under load.
+export const PREFERRED_GEMINI_MODELS: readonly string[] = ["gemini-flash-lite-latest", "gemini-flash-latest"];
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 /** Pause before retrying the same model+key after a 5xx overload (seen live 2026-09-26). */
 const GEMINI_OVERLOAD_RETRY_MS = 700;

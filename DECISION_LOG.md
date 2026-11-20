@@ -64,6 +64,10 @@ instead of a pinned model string.
 removes manual model migrations; trade-off accepted: answer style can change
 when Google moves the alias. Knowledge stays fixed by the system prompt.
 **Commander follow-up:** proposed DL-005 update recorded in corrections/.
+**Amended 2026-11-20 (Director: "lite prvi"):** order is now
+`gemini-flash-lite-latest` → `gemini-flash-latest` → models discovered via
+ListModels. Live measurement: lite answered in 0.4–0.6 s, while
+`gemini-flash-latest` failed or took > 20 s under load.
 
 ---
 

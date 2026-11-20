@@ -86,3 +86,6 @@
 - [2026-11-20 20:34] Edit: supabase\functions\chat-assistant\index.ts
 - [2026-11-20 20:34] Edit: supabase\functions\chat-assistant\index.ts
 - [2026-11-20 20:34] Edit: supabase\functions\_shared\ai\ai-provider.interface.ts
+- [2026-11-20 20:39] Edit: supabase\functions\_shared\ai\gemini-provider.ts
+- [2026-11-20 20:39] Edit: supabase\functions\_shared\ai\gemini-provider.test.ts
+- [2026-11-20 20:39] Edit: DECISION_LOG.md

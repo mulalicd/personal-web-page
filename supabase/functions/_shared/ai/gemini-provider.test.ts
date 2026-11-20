@@ -42,7 +42,8 @@ Deno.test("falls back to the newest stable Flash model when every preferred mode
       text += chunk;
     }
     assert(text === "Hello from the new model", `unexpected answer: ${text}`);
-    assert(calls.some((url) => url.includes("gemini-flash-latest:")), "preferred alias was not tried first");
+    assert(calls.some((url) => url.includes("gemini-flash-lite-latest:")), "preferred alias was not tried first");
+    assert(calls.some((url) => url.includes("gemini-flash-latest:")), "second preferred alias was not tried");
     assert(!calls.some((url) => url.includes("preview")), "a preview model was tried");
     const newest = calls.findIndex((url) => url.includes("gemini-5.0-flash:"));
     const older = calls.findIndex((url) => url.includes("gemini-2.0-flash:"));
