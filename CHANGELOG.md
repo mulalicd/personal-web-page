@@ -24,3 +24,4 @@
 - 2026-09-26 [PERF] Sprint 04 prerender published and rolled back the same day: mobile Lighthouse fell 58 → 33–45 (see SPRINT_04_LESSONS)
 - 2026-09-26 [SETUP] Commander updated to v1.6 (KRAJ proposal executed); automation re-pinned to tag v1.6
 - 2026-11-20 [FIX] Backend outage (paused Supabase project): daily keep-alive (Vercel cron + GitHub health check with alert), self-healing Gemini model discovery, honest error texts
+- 2026-11-20 [SETUP] Commander v1.8.1 (project was v1.6): critical rules inlined in CLAUDE.md; E-24 — /assets/* no longer rewritten to index.html, one automatic reload after a release

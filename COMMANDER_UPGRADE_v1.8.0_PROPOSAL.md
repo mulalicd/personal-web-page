@@ -1,5 +1,5 @@
 # Commander Upgrade Proposal — personal-web-page v1.6 → v1.8.0
-Date: 2026-11-20 · Status: **AWAITING DIRECTOR APPROVAL** (nothing applied)
+Date: 2026-11-20 · Status: **APPROVED and EXECUTED** (Director: "Ostalo imaš moju saglasnost", 2026-11-20) — Commander `v1.8.1` (commit a8926b9, AUDIT-010); project pinned to v1.8.1
 
 Evidence: Commander tag `v1.8.0` (COMMANDER_CHANGELOG v1.6.1 … v1.8.0), file-by-file
 comparison of this project's `.claude/` with `automation/` at that tag.
@@ -10,7 +10,7 @@ comparison of this project's `.claude/` with `automation/` at that tag.
 |---|---|---|---|
 | A1 | Automation (6 hooks, settings, 6 skills, CI guard) | Already **byte-identical** to v1.8.0 — no change needed | none |
 | A2 | `.commander-version` 1.6 → 1.8.0; version stamps in CLAUDE.md, CONSTITUTION.md, DECISION_LOG.md | Removes the session-start mismatch warning | none |
-| A3 | CLAUDE.md: inline the 7 🔴 rules added since v1.6 — M-24, E-18, E-19, E-22, C-12, C-13 (one line each) | Template promises "all 🔴 rules inlined"; they are not | none |
+| A3 | CLAUDE.md: inline the 6 🔴 rules added since v1.6 — M-24, E-18, E-19, E-22, C-12, C-13 (one line each) | Template promises "all 🔴 rules inlined"; they are not | none |
 | A4 | `vercel.json`: catch-all rewrite must not cover `/assets/*` (clean 404 instead of HTML) + `vite:preloadError` → reload the page once | **E-24** — this project has exactly that defect: a visitor with the site open during a release gets "Unexpected token '<'" when a lazy chunk (3D hero, admin, chatbot) is requested | low; tested locally + live |
 | A5 | Nothing else applies: E-18/E-19 (owner SQL, identity migrations) — none planned; E-22 (AI rewriting stored content) — the chatbot stores nothing; E-25 already met (Edge Functions import with relative paths + `deno@2 check`) | — | — |
 
