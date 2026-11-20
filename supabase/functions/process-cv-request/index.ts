@@ -11,7 +11,8 @@
  * change, the audit entry and the requester email happen server-side together.
  */
 import { processCvRequestSchema } from "../../../src/lib/validation/schemas.ts";
-import { PUBLIC_CONTACT_EMAIL, SITE_URL } from "../_shared/constants.ts";
+import { PUBLIC_CONTACT_EMAIL } from "../_shared/constants.ts";
+import { CV_APPROVED_SUBJECT, cvApprovedEmailHtml } from "../_shared/cv-email.ts";
 import { sendEmail } from "../_shared/email.ts";
 import { emailLayout, escapeHtml } from "../_shared/html.ts";
 import { fail, handlePreflight, logError, ok } from "../_shared/http.ts";
@@ -68,18 +69,9 @@ Deno.serve(async (req) => {
     if (auditError) logError("process-cv-request.audit", auditError, { requestId });
 
     const greeting = request.name ? `Dear ${escapeHtml(request.name)},` : "Hello,";
-    const personalLink = `${SITE_URL}/cv-status?token=${request.token}`;
     const html =
       newStatus === "approved"
-        ? emailLayout(
-          "Your CV request has been approved",
-          `<p>${greeting}</p>
-           <p>Thank you for your interest. Your request to access Davor Mulalić's CV has been approved.</p>
-           <p style="text-align:center;margin:28px 0;">
-             <a href="${personalLink}" style="background:#1a6fbf;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;">Download the CV</a>
-           </p>
-           <p style="color:#666;font-size:13px;">This link is personal — please do not forward it.</p>`,
-        )
+        ? cvApprovedEmailHtml(request.name, request.token)
         : emailLayout(
           "Update on your CV request",
           `<p>${greeting}</p>
@@ -93,7 +85,7 @@ Deno.serve(async (req) => {
       message: {
         to: request.email,
         replyTo: PUBLIC_CONTACT_EMAIL,
-        subject: newStatus === "approved" ? "Your CV request has been approved — Davor Mulalić" : "Your CV request — Davor Mulalić",
+        subject: newStatus === "approved" ? CV_APPROVED_SUBJECT : "Your CV request — Davor Mulalić",
         html,
       },
     });

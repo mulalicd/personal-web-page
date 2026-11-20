@@ -49,3 +49,19 @@
   fake Google API (`_shared/ai/gemini-provider.test.ts`): preferred aliases
   404 → newest stable Flash model answers, previews skipped. → Prove
   failure-path behaviour with a mocked dependency, never by breaking prod.
+
+### 2026-11-20 — CV request "not working" + chatbot 15–60 s
+- CV: two requests today reached request-cv (rate_limits rows 20:21, 20:26)
+  but created nothing — both addresses already had an APPROVED request, and
+  the function silently returned `received` without any email. A returning
+  visitor never got the CV again. Fix: an approved address gets its personal
+  link again (shared `_shared/cv-email.ts`, idempotency per request per day);
+  the public response stays uniform (no enumeration). → "Uniform response"
+  must never mean "silently do nothing".
+- Read-only evidence came from `npx supabase db query --linked` (masked
+  emails) — the CLI can query the linked project; no MCP permission needed.
+- Chatbot: first byte after 15.6 s and 58 s, then the whole answer at once —
+  the model "thinks" before writing. Fix (not yet deployed, awaits "objavi"):
+  `thinkingConfig.thinkingLevel = "minimal"` with automatic retry without it
+  on 400, 20 s header timeout per model, `Server-Timing` header (model + ms)
+  so latency is measurable from outside.

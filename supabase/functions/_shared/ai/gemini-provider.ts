@@ -61,6 +61,27 @@ function configuredModels(): string[] {
   return override.length > 0 ? override : [...PREFERRED_GEMINI_MODELS];
 }
 
+/**
+ * Newer Flash models "think" before answering; with the default level a
+ * visitor waited 15–60 s for the first word (2026-11-20). A CV assistant needs
+ * no deep reasoning, so the thinking level is set to the minimum.
+ */
+const MINIMAL_THINKING = { thinkingLevel: "minimal" } as const;
+/** Models that answered 400 to the thinking setting (remembered per instance). */
+const MODELS_WITHOUT_THINKING_CONTROL = new Set<string>();
+/** Give up waiting for one model's response headers after this long and try the next. */
+const GEMINI_HEADERS_TIMEOUT_MS = 20_000;
+
+interface GeminiRequestBody {
+  systemInstruction: { parts: Array<{ text: string }> };
+  contents: Array<{ role: "user" | "model"; parts: Array<{ text: string }> }>;
+  generationConfig: { maxOutputTokens: number; temperature: number; thinkingConfig?: typeof MINIMAL_THINKING };
+}
+
+function withMinimalThinking(request: GeminiRequestBody): GeminiRequestBody {
+  return { ...request, generationConfig: { ...request.generationConfig, thinkingConfig: MINIMAL_THINKING } };
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -79,7 +100,10 @@ export class GeminiProvider implements AIProvider {
    * short retry first. Nothing is streamed until a request succeeds, so the
    * visitor never sees the failed attempts.
    */
-  private async open(body: string): Promise<Response> {
+  /** Which model answered the last call and how long it took to start (no secrets). */
+  lastCall: { model: string; ms: number; thinking: boolean } | null = null;
+
+  private async open(body: GeminiRequestBody): Promise<Response> {
     const preferred = configuredModels();
     const first = await this.tryModels(preferred, body);
     if (first.ok) return first.response;
@@ -101,27 +125,45 @@ export class GeminiProvider implements AIProvider {
   /** @returns the first successful response, or the last failed one (ok=false). */
   private async tryModels(
     models: readonly string[],
-    body: string,
+    request: GeminiRequestBody,
   ): Promise<{ ok: true; response: Response } | { ok: false; response: Response | null }> {
     let last: Response | null = null;
     for (const model of models) {
       const url = `${GEMINI_API_BASE}/${model}:streamGenerateContent?alt=sse`;
       for (const key of this.apiKeys) {
         for (let attempt = 1; attempt <= 2; attempt++) {
+          const thinking = !MODELS_WITHOUT_THINKING_CONTROL.has(model);
+          const started = Date.now();
           let response: Response;
+          // Bounds the wait for response headers only; the stream itself is not cut.
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), GEMINI_HEADERS_TIMEOUT_MS);
           try {
             response = await fetch(url, {
               method: "POST",
               headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-              body,
+              body: JSON.stringify(thinking ? withMinimalThinking(request) : request),
+              signal: controller.signal,
             });
           } catch (error) {
             console.warn(JSON.stringify({ level: "warn", location: "GeminiProvider", model, network: String(error) }));
             break;
+          } finally {
+            clearTimeout(timer);
           }
           if (response.ok && response.body) {
             if (last) await last.body?.cancel();
+            this.lastCall = { model, ms: Date.now() - started, thinking };
             return { ok: true, response };
+          }
+          if (response.status === 400 && thinking) {
+            // This model does not accept the thinking setting: remember it and
+            // retry the same model without it (slower, but it answers).
+            await response.body?.cancel();
+            MODELS_WITHOUT_THINKING_CONTROL.add(model);
+            console.warn(JSON.stringify({ level: "warn", location: "GeminiProvider", model, thinkingControl: "rejected" }));
+            attempt--;
+            continue;
           }
           const overloaded = response.status >= 500;
           const tryNext = overloaded || response.status === 429 || response.status === 404;
@@ -145,14 +187,14 @@ export class GeminiProvider implements AIProvider {
   }
 
   async *streamChat(system: string, turns: ChatTurn[], options: GenerateOptions): AsyncIterable<string> {
-    const body = JSON.stringify({
+    const body: GeminiRequestBody = {
       systemInstruction: { parts: [{ text: system }] },
       contents: turns.map((turn) => ({
         role: turn.role === "assistant" ? "model" : "user",
         parts: [{ text: turn.content }],
       })),
       generationConfig: { maxOutputTokens: options.maxTokens, temperature: options.temperature },
-    });
+    };
 
     const response = await this.open(body);
 

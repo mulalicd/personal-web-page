@@ -22,6 +22,8 @@ export interface AIProvider {
    * @throws AIProviderError when the provider rejects or fails the request.
    */
   streamChat(system: string, turns: ChatTurn[], options: GenerateOptions): AsyncIterable<string>;
+  /** Which model answered the last call and how long it took to start (operational, no secrets). */
+  readonly lastCall: { model: string; ms: number; thinking: boolean } | null;
 }
 
 /** Provider failure with a machine-readable reason for the caller. */

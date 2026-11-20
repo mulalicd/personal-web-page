@@ -72,3 +72,17 @@
 - [2026-11-20 20:09] Edit: src\main.tsx
 - [2026-11-20 20:11] Write: ..\..\..\cmdr\v181.py
 - [2026-11-20 20:15] Write: supabase\functions\_shared\ai\gemini-provider.test.ts
+- [2026-11-20 20:32] Write: supabase\functions\_shared\cv-email.ts
+- [2026-11-20 20:32] Edit: supabase\functions\process-cv-request\index.ts
+- [2026-11-20 20:32] Edit: supabase\functions\process-cv-request\index.ts
+- [2026-11-20 20:32] Edit: supabase\functions\process-cv-request\index.ts
+- [2026-11-20 20:32] Edit: supabase\functions\request-cv\index.ts
+- [2026-11-20 20:32] Edit: supabase\functions\request-cv\index.ts
+- [2026-11-20 20:32] Edit: supabase\functions\request-cv\index.ts
+- [2026-11-20 20:33] Edit: supabase\functions\_shared\ai\gemini-provider.ts
+- [2026-11-20 20:33] Edit: supabase\functions\_shared\ai\gemini-provider.ts
+- [2026-11-20 20:33] Edit: supabase\functions\_shared\ai\gemini-provider.ts
+- [2026-11-20 20:33] Edit: supabase\functions\_shared\ai\gemini-provider.ts
+- [2026-11-20 20:34] Edit: supabase\functions\chat-assistant\index.ts
+- [2026-11-20 20:34] Edit: supabase\functions\chat-assistant\index.ts
+- [2026-11-20 20:34] Edit: supabase\functions\_shared\ai\ai-provider.interface.ts

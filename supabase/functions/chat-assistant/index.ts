@@ -38,13 +38,21 @@ Deno.serve(async (req) => {
     const limit = await checkRateLimit(db, await clientFingerprint(req), "chat", RATE_LIMITS.chat);
     if (!limit.allowed) return rateLimited(req, limit.retryAfter);
 
-    const stream = getAIProvider().streamChat(SYSTEM_PROMPT, turns, {
+    const startedAt = Date.now();
+    const provider = getAIProvider();
+    const stream = provider.streamChat(SYSTEM_PROMPT, turns, {
       maxTokens: CHAT_MAX_OUTPUT_TOKENS,
       temperature: CHAT_TEMPERATURE,
     });
     const iterator = stream[Symbol.asyncIterator]();
     // Pull the first chunk before answering so provider errors become a clean JSON error.
     const first = await iterator.next();
+    // Operational timing only (model id + milliseconds, never content or keys):
+    // lets the daily health check and a curl see where the time goes.
+    const call = provider.lastCall;
+    const serverTiming =
+      `total;dur=${Date.now() - startedAt}` +
+      (call ? `, ai;desc="${call.model}${call.thinking ? " minimal-thinking" : ""}";dur=${call.ms}` : "");
 
     const body = new ReadableStream<Uint8Array>({
       async start(controller) {
@@ -66,7 +74,12 @@ Deno.serve(async (req) => {
     });
 
     return new Response(body, {
-      headers: { ...corsHeaders(req), "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
+      headers: {
+        ...corsHeaders(req),
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Server-Timing": serverTiming,
+      },
     });
   } catch (error) {
     if (error instanceof AIProviderError) {

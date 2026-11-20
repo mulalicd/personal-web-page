@@ -6,11 +6,14 @@
  *   address already had a request, so the endpoint cannot be used to probe emails.
  * Errors: 400 (validation), 429 (rate limit), 500 (unexpected)
  *
- * Stores a pending request and notifies the Director. The visitor never learns
- * whether an address was already approved — only that the request is on file.
+ * New address: stores a pending request and notifies the Director.
+ * Already approved: emails the personal download link again to that address.
+ * Already pending: nothing new (the Director already has it in the admin panel).
+ * The visitor always gets the same response, so nothing about an address leaks.
  */
 import { cvRequestSchema } from "../../../src/lib/validation/schemas.ts";
-import { ADMIN_NOTIFY_EMAIL, RATE_LIMITS, SITE_URL } from "../_shared/constants.ts";
+import { ADMIN_NOTIFY_EMAIL, PUBLIC_CONTACT_EMAIL, RATE_LIMITS, SITE_URL } from "../_shared/constants.ts";
+import { CV_APPROVED_SUBJECT, cvApprovedEmailHtml } from "../_shared/cv-email.ts";
 import { sendEmail } from "../_shared/email.ts";
 import { emailLayout, escapeHtml, singleLine } from "../_shared/html.ts";
 import { clientFingerprint, fail, handlePreflight, logError, ok, rateLimited } from "../_shared/http.ts";
@@ -36,12 +39,32 @@ Deno.serve(async (req) => {
 
     const { data: existing, error: existingError } = await db
       .from("cv_requests")
-      .select("id")
+      .select("id, status, name, token")
       .eq("email", email)
       .in("status", ["pending", "approved"])
+      .order("status") // "approved" sorts before "pending"
+      .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
     if (existingError) throw new Error(`cv_requests lookup failed: ${existingError.message}`);
+    if (existing?.status === "approved") {
+      // Already approved earlier: send the personal link again instead of
+      // silently doing nothing (bug found 2026-11-20). It goes only to the
+      // address on file, so the response stays uniform and reveals nothing.
+      const resend = await sendEmail(db, {
+        functionName: "request-cv",
+        idempotencyKey: `cv-resend-${existing.id}-${new Date().toISOString().slice(0, 10)}`,
+        message: {
+          to: email,
+          replyTo: PUBLIC_CONTACT_EMAIL,
+          subject: CV_APPROVED_SUBJECT,
+          html: cvApprovedEmailHtml(existing.name ?? name, existing.token),
+        },
+      });
+      if (!resend.ok) logError("request-cv.resend", resend.code, { requestId: existing.id });
+      return ok(req, { received: true });
+    }
+    // Pending: the Director was already notified and sees it in the admin panel.
     if (existing) return ok(req, { received: true });
 
     const { data: created, error: insertError } = await db
