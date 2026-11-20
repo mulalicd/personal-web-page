@@ -65,3 +65,9 @@
   `thinkingConfig.thinkingLevel = "minimal"` with automatic retry without it
   on 400, 20 s header timeout per model, `Server-Timing` header (model + ms)
   so latency is measurable from outside.
+- Deployed 2026-11-20 ("objavi"). Live measurement, 4 questions: every
+  answer came from `gemini-flash-lite-latest` in 0.42–0.55 s; two requests
+  still took 20.5–23.5 s in total because `gemini-flash-latest` did not
+  return headers within the 20 s timeout before the fallback answered; two
+  took 0.5 s (flash-latest failed fast). Server-Timing made this visible.
+  → Proposed to the Director: lite first (PDL-005 change), not done unasked.
